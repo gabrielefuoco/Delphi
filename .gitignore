@@ -5,3 +5,13 @@ delphi_responses/
 downloads/
 delphi_state.json
 .DS_Store
+
+# Delphi generated files
+.build/
+output/
+*.pdf
+*.docx
+
+# Progetti Utente
+# (Rimuovi il commento se non vuoi che i tuoi progetti vengano salvati su Git)
+# Projects/
