@@ -1,0 +1,384 @@
+/* Foglio di stile per PDF basato su GitHub Markdown CSS */
+
+@import url('https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css');
+
+/* Regole di Paginazione e Spaziatura */
+@page {
+    margin: 25mm;
+}
+
+body {
+    padding: 0 !important; /* Il margine viene gestito da @page */
+}
+
+/* Evitiamo lo spezzamento dei capitoli */
+h1 {
+    page-break-before: always;
+    margin-top: 0 !important;
+}
+
+/* Il primissimo H1 della primissima pagina non deve saltare */
+h1:first-of-type {
+    page-break-before: auto;
+}
+
+/* Protezione Orfane/Vedove: Evita che i titoli finiscano isolati a fondo pagina */
+h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+}
+
+/* Protezione Orfane/Vedove: Evita righe singole isolate a fine o inizio pagina */
+p, li, blockquote {
+    orphans: 3;
+    widows: 3;
+}
+
+/* Protezione Blocchi: Evita assolutamente che tabelle, codice e box vengano troncati a metà */
+pre, code, table, img, blockquote {
+    page-break-inside: avoid;
+}
+
+/* Evita il taglio orizzontale del testo di codice nei PDF */
+pre, pre code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    overflow-wrap: anywhere !important;
+}
+
+/* Design personalizzato per i Blockquote (Note di Approfondimento) */
+.markdown-body blockquote {
+    background: #f1f8ff; /* Sfondo azzurro tenue in stile alert GitHub */
+    border-left: 5px solid #0366d6; /* Bordo azzurro intenso */
+    padding: 16px 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Leggera ombreggiatura elegante */
+    color: #24292e;
+    font-style: normal; /* Rimossa l'inclinazione (corsivo) di default */
+}
+
+/* ------------------------------------------------------------- */
+/* PREVENZIONE DEL DOWNSCALING AUTOMATICO DI CHROME DURANTE PDF  */
+/* ------------------------------------------------------------- */
+
+/* Forza l'intera pagina a non sbrordare mai oltre i margini dell'A4 e rimpicciolisce il font globale */
+html, body, .markdown-body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    font-size: 13px !important;
+    line-height: 1.7 !important;
+}
+
+/* Assicura che le tabelle non si allarghino all'infinito rimpicciolendo la pagina */
+table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+table td, table th {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Le formule matematiche lunghe (KaTeX) devono potersi spezzare e andare a capo */
+.katex-display {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+.katex {
+    white-space: normal !important; /* Rompe l'incollamento della formula e le permette di andare a capo */
+}
+
+/* ------------------------------------------------------------- */
+/* STILI COPERTINA PARAMETRICA                                   */
+/* ------------------------------------------------------------- */
+
+/* Elimina i margini di Puppeteer solo per la prima pagina, 
+   permettendo al colore di riempire tutto il foglio e nascondendo il footer (numero pagina) */
+@page :first {
+    margin: 0 !important;
+}
+
+.cover-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 10vh 10vw;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Tema Academic (Sobrio ed elegante) */
+.theme-academic {
+    color: #111;
+}
+.theme-academic .cover-title {
+    font-size: 3.5em !important;
+    font-weight: 800;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eaecef;
+    padding-bottom: 15px;
+}
+.theme-academic .cover-subtitle {
+    font-size: 1.8em !important;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 50px;
+}
+.theme-academic .cover-author {
+    font-size: 1.5em !important;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.theme-academic .cover-date {
+    font-size: 1.2em;
+    color: #777;
+    font-style: italic;
+}
+
+/* Tema Modern (Sfondo azzurro tenue, richiamo ai blockquote attuali) */
+.theme-modern {
+    background-color: #f1f8ff;
+    color: #24292e;
+    border-left: 15px solid #0366d6;
+}
+.theme-modern .cover-title {
+    font-size: 3.5em !important;
+    font-weight: 900;
+    margin-bottom: 25px;
+    color: #0366d6;
+}
+.theme-modern .cover-subtitle {
+    font-size: 1.8em !important;
+    font-weight: 300;
+    color: #586069;
+    margin-bottom: 60px;
+}
+.theme-modern .cover-author {
+    font-size: 1.5em !important;
+    font-weight: bold;
+    color: #24292e;
+    margin-bottom: 10px;
+}
+.theme-modern .cover-date {
+    font-size: 1.2em;
+    color: #586069;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Tema Classic (Effetto Libro Antico) */
+.theme-classic {
+    background-color: #f4ecd8; /* Colore pergamena/carta vecchia */
+    color: #2c1e16; /* Inchiostro scuro */
+    font-family: 'Palatino Linotype', 'Book Antiqua', serif;
+    box-shadow: inset 0 0 0 20px #f4ecd8, inset 0 0 0 24px #2c1e16, inset 0 0 0 26px #f4ecd8, inset 0 0 0 28px #2c1e16; /* Bordi multipli interni */
+}
+.theme-classic .cover-title {
+    font-size: 4em;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #5a2e15; /* Accento rosso/marrone scuro */
+}
+.theme-classic .cover-subtitle {
+    font-size: 1.6em;
+    font-style: italic;
+    border-top: 1px solid #2c1e16;
+    border-bottom: 1px solid #2c1e16;
+    padding: 15px 0;
+    display: inline-block;
+}
+
+/* Tema Minimalist (Ultra-pulito, allineato in basso) */
+.theme-minimalist {
+    background-color: #fafafa;
+    color: #111111;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    justify-content: flex-end !important; /* Spinge il testo in basso */
+    align-items: flex-start !important; /* Allinea a sinistra */
+    text-align: left !important;
+    padding: 10vh 12vw !important; /* Più respiro laterale */
+}
+.theme-minimalist .cover-title {
+    font-size: 5em;
+    font-weight: 200; /* Molto sottile */
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+.theme-minimalist .cover-subtitle {
+    font-size: 1.5em;
+    font-weight: 400;
+    color: #666;
+    margin-bottom: 5vh;
+}
+.theme-minimalist .cover-author {
+    font-size: 1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+/* Tema Brutalism (Giallo e nero sparato, tipografia aggressiva) */
+.theme-brutalism {
+    background-color: #f3ff00;
+    color: #000000;
+    font-family: 'Courier New', Courier, monospace;
+    outline: 15px solid #000;
+    outline-offset: -35px; /* Crea un box spesso all'interno della pagina */
+    justify-content: center !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    padding: 0 10vw !important;
+}
+.theme-brutalism .cover-title {
+    font-size: 6em;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    margin-bottom: 30px;
+    background-color: #000;
+    color: #f3ff00;
+    display: inline-block;
+    padding: 10px 20px;
+}
+.theme-brutalism .cover-subtitle {
+    font-size: 2em;
+    font-weight: bold;
+    border: 4px solid #000;
+    padding: 10px;
+    background: #fff;
+    margin-bottom: 40px;
+}
+.theme-brutalism .cover-author {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Tema IDE (Dynamic Scaffold) */
+.theme-ide {
+    background-color: var(--bg-color, #0b0c10);
+    color: var(--text-color, #c5c6c7);
+    font-family: var(--main-font, 'Courier New', monospace) !important;
+    padding: 0 !important;
+    padding-left: calc(70px + 4vw) !important;
+    padding-right: 4vw !important;
+    align-items: flex-start;
+    justify-content: flex-start !important; /* Disabilita il centraggio verticale */
+}
+.theme-ide * {
+    font-family: inherit;
+}
+.ide-grid {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 1;
+}
+.ide-sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 70px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    z-index: 2;
+}
+.ide-lines {
+    position: absolute;
+    top: 0; left: 0;
+    padding-top: 15px;
+    width: 70px;
+    text-align: right;
+    padding-right: 15px;
+    color: rgba(255,255,255,0.2);
+    font-size: 1em;
+    line-height: 2;
+    z-index: 3;
+}
+.ide-content {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    padding-top: 15vh;
+    padding-bottom: 10vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    box-sizing: border-box;
+}
+.ide-window-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 3vh;
+}
+.ide-window-controls .dot {
+    width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+}
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+.ide-path { margin-left: 15px; color: rgba(255,255,255,0.4); font-size: 0.9em; }
+
+.ide-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px 30px;
+    margin-bottom: 4vh;
+    backdrop-filter: blur(10px);
+    font-size: 1.1em;
+    line-height: 1.6;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+.ide-block.desc-block {
+    margin-bottom: auto; /* Spinge il blocco autore verso il fondo */
+}
+.ide-block.author-block {
+    margin-bottom: 0;
+}
+.theme-ide .cover-title {
+    font-size: 4em !important;
+    font-weight: 900;
+    color: var(--primary-color, #66fcf1);
+    margin-bottom: 3vh;
+    text-shadow: 0 0 20px rgba(102,252,241,0.3);
+    border: none;
+    text-align: left;
+}
+.ide-pill {
+    background-color: var(--primary-color, #66fcf1);
+    color: #000;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 20px;
+    margin-bottom: 6vh;
+    font-size: 0.9em;
+}
+
+/* Syntax Highlighting Base (VS Code Dark+ style) */
+.ide-comment { color: #6a9955; font-style: italic; }
+.ide-keyword { color: #c586c0; font-weight: bold; }
+.ide-variable { color: #9cdcfe; }
+.ide-class { color: #4ec9b0; }
+.ide-type { color: #4ec9b0; }
+.ide-string { color: #ce9178; }

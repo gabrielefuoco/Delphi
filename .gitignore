@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+node_modules/
+delphi_responses/
+downloads/
+delphi_state.json
+.DS_Store

@@ -1,0 +1,21 @@
+# Capitolo 1: Introduzione e Concetti Fondamentali di GraphRAG
+- Definizione di Graph Retrieval-Augmented Generation (GraphRAG)
+- I limiti del RAG tradizionale (Vector Search) e il "retrieval ceiling"
+- L'integrazione dei Knowledge Graph (KG): Nodi, Archi ed Entità
+- Il concetto di Multi-Hop Reasoning e l'inferenza complessa
+
+# Capitolo 2: Architettura e Componenti di Sistema
+- Pipeline di estrazione Entità e Relazioni dai documenti non strutturati
+- Il ruolo del Knowledge Graph Database (es. Neo4j, Memgraph) e l'indicizzazione vettoriale ibrida
+- Il Motore di Retrieval: traduzione delle query e attraversamento del grafo
+- Community Detection e Summarization (l'approccio Microsoft per le query globali)
+
+# Capitolo 3: Confronto e Benchmark (GraphRAG vs Traditional RAG)
+- Struttura dei dati e focus del retrieval (Similarità semantica vs Contesto relazionale)
+- Capacità di ragionamento: interrogazioni localizzate (fact-based) vs tematiche (cross-document)
+- Casi d'uso raccomandati per GraphRAG (dati complessi, report finanziari, analisi tematiche)
+
+# Capitolo 4: Implementazioni Reali e Prospettive Future
+- Sfide nell'implementazione di GraphRAG
+- Generazione della risposta finale: come l'LLM sfrutta il contesto relazionale
+- Prospettive future nell'evoluzione delle architetture ibride vettoriali-relazionali
