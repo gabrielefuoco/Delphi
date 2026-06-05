@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "title": "Meccanica_Quantistica",
+    "author": "Oracolo Delphi",
+    "date": "2026-06-05",
+    "version": "0.1.0",
+    "logo": "assets/images/quantum_cover.jpg"
+  },
+  "order": [
+    "01_Crisi della Fisica Classica e Origini della Teoria dei Quanti",
+    "02_Il Dualismo Onda-Particella e l'Ipotesi di De Broglie",
+    "03_I Postulati della Meccanica Quantistica",
+    "04_L'Equazione di Schr\u00f6dinger e la Funzione d'Onda",
+    "05_L'Oscillatore Armonico Quantistico",
+    "06_Teoria Generale del Momento Angolare e dello Spin",
+    "07_Il Principio di Indeterminazione di Heisenberg e i suoi Fondamenti Matematici",
+    "08_Fondamenti Matematici dell'Entanglement Quantistico e Implicazioni del Paradosso EPR",
+    "09_La Teoria Quantistica della Misura e la Precipitazione dello Stato",
+    "10_Applicazioni Moderne della Meccanica Quantistica"
+  ],
+  "compilation": {
+    "pandoc_extensions": "+tex_math_dollars",
+    "shift_heading_level": 1,
+    "page_break_before_chapter": true,
+    "typst_template": "default_thesis",
+    "heading_numbering": "1.1"
+  }
+}

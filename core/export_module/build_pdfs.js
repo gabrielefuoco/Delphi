@@ -1,14 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const { mdToPdf } = require('md-to-pdf');
+const { PDFDocument } = require('pdf-lib');
 
-// Legge i percorsi da linea di comando:
-// node build_pdfs.js <input.md> <output.pdf>
-const inputMdPath = process.argv[2];
-const outPdfPath = process.argv[3];
+// node build_pdfs.js <cover.md> <body.md> <output.pdf>
+const coverMdPath = process.argv[2];
+const bodyMdPath = process.argv[3];
+const outPdfPath = process.argv[4];
 
-if (!inputMdPath || !outPdfPath) {
-    console.error("Uso: node build_pdfs.js <input.md> <output.pdf>");
+if (!coverMdPath || !bodyMdPath || !outPdfPath) {
+    console.error("Uso: node build_pdfs.js <cover.md> <body.md> <output.pdf>");
     process.exit(1);
 }
 
@@ -43,66 +44,103 @@ katexScript.onload = () => {
 };
 `;
 
-(async () => {
-    console.log(`\n📘 Assemblando PDF da: ${inputMdPath}`);
-    
-    let content = fs.readFileSync(inputMdPath, 'utf8');
-    
-    // Protezione Formule Matematiche:
-    // Evitiamo che il parser Markdown trasformi gli underscore (_) in corsivi (<em>)
-    // o i doppi backslash (\\) in singoli, distruggendo la sintassi KaTeX.
-    // Sostituiamo questi caratteri critici con HTML entities, che il DOM decodificherà 
-    // automaticamente prima che KaTeX li legga.
-    const protectMath = (mathStr) => {
-        return mathStr
-            .replace(/\\/g, '&#92;')
-            .replace(/_/g, '&#95;')
-            .replace(/\*/g, '&#42;')
-            .replace(/~/g, '&#126;');
-    };
+const protectMath = (mathStr) => {
+    return mathStr
+        .replace(/\\/g, '&#92;')
+        .replace(/_/g, '&#95;')
+        .replace(/\*/g, '&#42;')
+        .replace(/~/g, '&#126;');
+};
 
+const processMarkdown = (filePath) => {
+    let content = fs.readFileSync(filePath, 'utf8');
     content = content.replace(/\$\$(.*?)\$\$/gs, (match, p1) => '$$' + protectMath(p1) + '$$');
     content = content.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g, (match, p1) => '$' + protectMath(p1) + '$');
+    return katexCssLink + '\n\n' + content;
+};
 
-    let mergedMarkdown = katexCssLink + '\n\n' + content;
-
-    console.log(`🚀 Generando il PDF...`);
+(async () => {
+    console.log(`\n📘 Assemblando PDF in due fasi...`);
     
-    try {
-        await mdToPdf(
-            { content: mergedMarkdown },
-            {
-                dest: outPdfPath,
-                body_class: 'markdown-body',
-                css: cssContent,
-                marked_options: {
-                    breaks: true
-                },
-                script: [{
-                    content: katexRenderScript
-                }],
-                as_html: false,
-                launch_options: { 
-                    timeout: 180000,
-                    args: ['--no-sandbox']
-                },
-                pdf_options: {
-                    format: 'A4',
-                    printBackground: true,
-                    displayHeaderFooter: true,
-                    footerTemplate: `
-                        <div style="width: 100%; font-size: 10px; font-family: sans-serif; text-align: center; color: #555;">
-                            <span class="pageNumber"></span> / <span class="totalPages"></span>
-                        </div>
-                    `,
-                    headerTemplate: '<span></span>',
-                    timeout: 180000
-                }
+    let coverMd = processMarkdown(coverMdPath);
+    let bodyMd = processMarkdown(bodyMdPath);
+
+    console.log(`🚀 Generando Copertina (Senza footer)...`);
+    const coverPdfPath = outPdfPath + '.cover.pdf';
+    await mdToPdf(
+        { content: coverMd },
+        {
+            dest: coverPdfPath,
+            body_class: 'markdown-body',
+            css: cssContent,
+            marked_options: { breaks: true },
+            script: [{ content: katexRenderScript }],
+            as_html: false,
+            launch_options: { timeout: 180000, args: ['--no-sandbox'] },
+            pdf_options: {
+                format: 'A4',
+                printBackground: true,
+                displayHeaderFooter: false,
+                timeout: 180000
             }
-        );
+        }
+    );
+
+    console.log(`🚀 Generando Corpo e Indice (Con footer)...`);
+    const bodyPdfPath = outPdfPath + '.body.pdf';
+    await mdToPdf(
+        { content: bodyMd },
+        {
+            dest: bodyPdfPath,
+            body_class: 'markdown-body',
+            css: cssContent,
+            marked_options: { breaks: true },
+            script: [{ content: katexRenderScript }],
+            as_html: false,
+            launch_options: { timeout: 180000, args: ['--no-sandbox'] },
+            pdf_options: {
+                format: 'A4',
+                printBackground: true,
+                displayHeaderFooter: true,
+                footerTemplate: `
+                    <div style="width: 100%; font-size: 10px; font-family: sans-serif; text-align: center; color: #555;">
+                        <span class="pageNumber"></span> / <span class="totalPages"></span>
+                    </div>
+                `,
+                headerTemplate: '<span></span>',
+                timeout: 180000
+            }
+        }
+    );
+
+    console.log(`🔗 Unione dei PDF in corso...`);
+    try {
+        const coverPdfBytes = fs.readFileSync(coverPdfPath);
+        const bodyPdfBytes = fs.readFileSync(bodyPdfPath);
+
+        const pdfDoc = await PDFDocument.create();
+        const coverDoc = await PDFDocument.load(coverPdfBytes);
+        const bodyDoc = await PDFDocument.load(bodyPdfBytes);
+
+        const coverPages = await pdfDoc.copyPages(coverDoc, coverDoc.getPageIndices());
+        for (const page of coverPages) {
+            pdfDoc.addPage(page);
+        }
+
+        const bodyPages = await pdfDoc.copyPages(bodyDoc, bodyDoc.getPageIndices());
+        for (const page of bodyPages) {
+            pdfDoc.addPage(page);
+        }
+
+        const mergedPdfBytes = await pdfDoc.save();
+        fs.writeFileSync(outPdfPath, mergedPdfBytes);
+        
+        fs.unlinkSync(coverPdfPath);
+        fs.unlinkSync(bodyPdfPath);
+
         console.log(`✅ Successo! Salvato in: ${outPdfPath}`);
     } catch (error) {
-        console.error(`❌ Errore durante la generazione:`, error);
+        console.error(`❌ Errore durante l'unione:`, error);
         process.exit(1);
     }
 })();

@@ -77,30 +77,28 @@ def setup(
     async def run_setup():
         official_path = str(notebooklm.paths.get_storage_path())
         client = await NotebookLMClient.from_storage(official_path, timeout=600)
-        
-        nb_title = f"[DELPHI-TMP] {project_name}"
-        # Controllo se esiste già
-        existing_id = _get_notebook_id(project_name)
-        if existing_id:
-            typer.echo(f"⚠️ Il progetto '{project_name}' esiste già (ID: {existing_id}). Verranno aggiunte le nuove fonti a questo notebook.")
-            notebook_id = existing_id
-        else:
-            _log(f"Creazione notebook: {nb_title} ...")
-            notebook = await client.notebooks.create(title=nb_title)
-            notebook_id = notebook.id
-            _log(f"✅ Notebook creato con ID: {notebook_id}")
-            
-            state = _load_state()
-            state["notebooks"].append({
-                "id": notebook_id,
-                "title": nb_title,
-                "ownership": "created_by_delphi",
-                "libs": libs.split(",") if libs else []
-            })
-            _save_state(state)
-            
         async with client:
-            
+            nb_title = f"[DELPHI-TMP] {project_name}"
+            # Controllo se esiste già
+            existing_id = _get_notebook_id(project_name)
+            if existing_id:
+                typer.echo(f"⚠️ Il progetto '{project_name}' esiste già (ID: {existing_id}). Verranno aggiunte le nuove fonti a questo notebook.")
+                notebook_id = existing_id
+            else:
+                _log(f"Creazione notebook: {nb_title} ...")
+                notebook = await client.notebooks.create(title=nb_title)
+                notebook_id = notebook.id
+                _log(f"✅ Notebook creato con ID: {notebook_id}")
+                
+                state = _load_state()
+                state["notebooks"].append({
+                    "id": notebook_id,
+                    "title": nb_title,
+                    "ownership": "created_by_delphi",
+                    "libs": libs.split(",") if libs else []
+                })
+                _save_state(state)
+                
             if files:
                 for fpath in files.split(","):
                     fpath = fpath.strip()
@@ -228,7 +226,8 @@ def generate(
     materia: str = typer.Option("Generale", help="La materia o l'argomento (es. Ingegneria del Software)"),
     ruolo: str = typer.Option("Tutor Accademico", help="Il ruolo che l'LLM deve assumere"),
     prompt: str = typer.Option(None, help="Prompt personalizzato di estrazione (se non fornito usa il default). Usa {indice_corrente} per il chunk."),
-    chunks_file: str = typer.Option(None, help="File TXT o MD con gli argomenti (indice) separati da riga vuota o capitoli.")
+    chunks_file: str = typer.Option(None, help="File TXT o MD con gli argomenti (indice) separati da riga vuota o capitoli."),
+    academic: bool = typer.Option(False, "--academic", help="Preserva e converte le citazioni generate da NotebookLM in formato Pandoc")
 ):
     """
     MODULO GENERAZIONE: Recupera le fonti attive e lancia la generazione massiva parallela.
@@ -258,163 +257,118 @@ def generate(
         # Avvia la generazione asincrona super-parallela
         memory_files = await generation_task(nb_id, chunks_data, materia, ruolo, prompt, disabled_sources)
         
-        os.makedirs(RESPONSES_DIR, exist_ok=True)
-        for fname, content in memory_files.items():
-            out_path = os.path.join(RESPONSES_DIR, f"{project_name}_{fname}")
-            with open(out_path, "w", encoding="utf-8") as f:
-                f.write(content)
-            typer.echo(f"SUCCESS: Output salvato in {out_path}")
+        from pathlib import Path
+        project_dir = Path.cwd() / project_name
+        if not project_dir.exists() or not (project_dir / "delphi.json").exists():
+            typer.echo(f"❌ Struttura Delphi non trovata per '{project_name}'. Esegui 'delphi init' prima di generare.")
+            raise typer.Exit(1)
+            
+        from core.academic.lib.project import ProjectManager
+        import shutil
+        import re as re_mod
+        pm = ProjectManager(Path.cwd())
+        
+        typer.echo(f"📥 Progetto strutturato rilevato. Aggiornamento cartella {project_dir}...")
+        
+        # Rimuovi vecchi capitoli generati automaticamente (che iniziano con cifre e underscore)
+        for d in project_dir.iterdir():
+            if d.is_dir() and re_mod.match(r'^\d+_', d.name):
+                shutil.rmtree(d, ignore_errors=True)
+                
+        for i, (fname, fcontent) in enumerate(memory_files.items(), 1):
+            # Extract real title
+            match = re_mod.search(r'^#\s*(?:Capitolo:?\s*)?(.*)', fcontent, re_mod.MULTILINE)
+            if match:
+                real_title = match.group(1).strip()
+                fcontent_clean = fcontent[match.start():]
+                # Remove the H1
+                fcontent_clean = re_mod.sub(r'^#\s+.*?\n', '', fcontent_clean, count=1).strip()
+            else:
+                real_title = f"Capitolo {i}"
+                fcontent_clean = fcontent
+                
+            safe_title = re_mod.sub(r'[\\/*?:"<>|]', "", real_title)
+            chap = pm.add_chapter(project_dir, safe_title)
+                
+            if academic:
+                def replace_cit(m):
+                    nums = m.group(1).split(',')
+                    cits = [f"@{n.strip()}" for n in nums]
+                    return "[" + "; ".join(cits) + "]"
+                fcontent_clean = re_mod.sub(r'\[(\d+(?:\s*,\s*\d+)*)\]', replace_cit, fcontent_clean)
+                
+            # Clean manual numbering
+            fcontent_clean = re_mod.sub(r'^(#{2,})\s+\d+(?:\.\d+)*\.?\s+', r'\1 ', fcontent_clean, flags=re_mod.MULTILINE)
+            
+            pm.add_paragraph(chap, "Appunti", fcontent_clean, include_header=False)
+            typer.echo(f"💾 Salvato Capitolo {i} in {chap.name}")
 
     asyncio.run(run_generate())
 
 @app.command()
 def fetch(
-    query: str = typer.Argument(..., help="Titolo o autore del libro/documento da cercare e scaricare"),
-    output_dir: str = typer.Option("downloads", help="Cartella in cui salvare il file scaricato")
+    query: str = typer.Argument(..., help="Termine di ricerca per Z-Library (titolo, autore, ISBN)"),
+    project: str = typer.Option(None, "--project", "-p", help="Nome del progetto in cui salvare il file (opzionale)")
 ):
     """
-    MODULO RICERCA: Cerca e scarica libri interi (PDF/EPUB) in autonomia.
+    MODULO RICERCA: Cerca e scarica automaticamente risorse da Z-Library.
     """
-    typer.echo(f"🕵️ Avvio ricerca autonoma per: {query}")
+    typer.echo(f"📚 Avvio modulo ricerca per: {query}")
     from core.fetch_engine import download_book
+    from pathlib import Path
     
-    # Esegue la ricerca e il download
+    if project:
+        output_dir = Path.cwd() / "Projects" / project / "assets"
+        output_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        output_dir = Path.cwd() / "downloads"
+        output_dir.mkdir(exist_ok=True)
+        
     result_path = download_book(query, dest_dir=output_dir)
     
     if result_path:
         typer.echo(f"\n✅ Il libro è stato salvato in: {result_path}")
-        typer.echo(f"💡 Puoi caricarlo in un nuovo progetto usando: delphi pesante <NomeProgetto> --files \"{result_path}\"")
     else:
         typer.echo("\n❌ Ricerca fallita. Nessun file scaricato.")
 
 @app.command()
 def export(
-    project_name: str = typer.Argument(..., help="Nome del progetto da esportare in PDF"),
-    title: str = typer.Option(None, "--title", "-t", help="Titolo della copertina"),
-    subtitle: str = typer.Option(None, "--subtitle", "-s", help="Sottotitolo della copertina"),
-    author: str = typer.Option("Generato da Delphi", "--author", "-a", help="Autore"),
-    date: str = typer.Option(None, "--date", "-d", help="Data (es. Giugno 2026)"),
-    theme: str = typer.Option("academic", "--theme", help="Tema: academic, modern, classic, minimalist, brutalism, ide"),
-    bg_color: str = typer.Option(None, "--bg-color", help="Colore di sfondo (es. #0d1117)"),
-    primary_color: str = typer.Option(None, "--primary-color", help="Colore principale (es. #58a6ff)"),
-    text_color: str = typer.Option(None, "--text-color", help="Colore del testo (es. #c9d1d9)"),
-    font: str = typer.Option(None, "--font", help="Google Font da usare (es. 'Fira Code')")
+    project_name: str = typer.Argument(..., help="Nome del progetto da esportare in PDF/DOCX"),
+    format: str = typer.Option("pdf", "--format", "-f", help="Formato: 'pdf' o 'docx'"),
+    engine: str = typer.Option("typst", "--engine", "-e", help="Motore di rendering per PDF: 'typst' o 'web'")
 ):
     """
-    MODULO ESPORTAZIONE: Concatena i chunk generati e produce un PDF formattato (KaTeX + CSS).
+    MODULO ESPORTAZIONE: Compila il progetto strutturato nel formato finale.
     """
     typer.echo(f"🖨️ Avvio esportazione per il progetto: {project_name}")
-    import glob
-    import subprocess
+    from pathlib import Path
     
-    responses_dir = Path("delphi_responses")
-    if not responses_dir.exists():
-        typer.echo("❌ Cartella delphi_responses non trovata.")
+    project_dir = Path.cwd() / "Projects" / project_name
+    if not project_dir.exists() or not (project_dir / "delphi.json").exists():
+        typer.echo(f"❌ Struttura Delphi non trovata per '{project_name}'.")
         raise typer.Exit(1)
         
-    # Trova tutti i file corrispondenti
-    pattern = str(responses_dir / f"{project_name}_appunti_p*.md")
-    files = glob.glob(pattern)
+    from core.academic.lib.project import ProjectManager
+    pm = ProjectManager(Path.cwd() / "Projects")
+    project = pm.load_project(project_dir)
     
-    if not files:
-        typer.echo(f"❌ Nessun chunk trovato per il progetto '{project_name}'.")
-        raise typer.Exit(1)
-        
-    # Ordina numericamente
-    def get_num(fpath):
-        import re
-        match = re.search(r'_p(\d+)\.md$', fpath)
-        return int(match.group(1)) if match else 0
-        
-    files.sort(key=get_num)
+    output_dir = project_dir / "output"
+    output_dir.mkdir(exist_ok=True)
+    output_file = output_dir / f"{project_name}.{format}"
     
-    typer.echo(f"📚 Trovati {len(files)} capitoli. Assemblaggio in corso...")
-    
-    cover_title = title if title else project_name
-    
-    font_link = f'<link href="https://fonts.googleapis.com/css2?family={font.replace(" ", "+")}:wght@300;400;700;900&display=swap" rel="stylesheet">\n' if font else ""
-    
-    style_vars = []
-    if bg_color: style_vars.append(f"--bg-color: {bg_color};")
-    if primary_color: style_vars.append(f"--primary-color: {primary_color};")
-    if text_color: style_vars.append(f"--text-color: {text_color};")
-    if font: style_vars.append(f"--main-font: '{font}', monospace;")
-    style_attr = f' style="{" ".join(style_vars)}"' if style_vars else ""
-
-    if theme == "ide":
-        # Impalcatura IDE avanzata senza righe vuote per non rompere il parser Markdown!
-        cover_html = f"""{font_link}<div class="cover-page theme-ide"{style_attr}>
-    <div class="ide-grid"></div>
-    <div class="ide-sidebar"></div>
-    <div class="ide-lines">
-        {'<br>'.join(str(i) for i in range(1, 51))}
-    </div>
-    <div class="ide-content">
-        <div class="ide-window-controls">
-            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
-            <span class="ide-path">~/{project_name.lower().replace(' ', '-')}/main.py</span>
-        </div>
-        <div class="ide-block top-block">
-            <span class="ide-comment"># {date or '2026'} :: {cover_title.lower()}</span><br>
-            <span class="ide-keyword">from</span> <span class="ide-variable">knowledge_base</span> <span class="ide-keyword">import</span> <span class="ide-class">{project_name.replace(' ', '')}</span>
-        </div>
-        <h1 class="cover-title">{cover_title}</h1>
-        <div class="ide-pill">{{ "status": "COMPUTED" }}</div>
-        <div class="ide-block desc-block">
-            <span class="ide-keyword">description</span>: <span class="ide-type">str</span> = <br>
-            <span class="ide-string">"{subtitle or 'Generato automaticamente.'}"</span>
-        </div>
-        <div class="ide-block author-block">
-            <span class="ide-keyword">const</span> <span class="ide-variable">author</span>: <span class="ide-type">Author</span> = {{ name: <span class="ide-string">"{author}"</span> }}<br>
-            <span class="ide-keyword">export default</span> {{ edition: 2026, license: <span class="ide-string">"MIT"</span> }}
-        </div>
-    </div>
-</div>
-<div style="page-break-after: always;"></div>
-"""
-    else:
-        # Layout standard per gli altri temi
-        cover_html = f"""{font_link}<div class="cover-page theme-{theme}"{style_attr}>
-    <h1 class="cover-title">{cover_title}</h1>
-"""
-        if subtitle:
-            cover_html += f'    <h2 class="cover-subtitle">{subtitle}</h2>\n'
-        if author:
-            cover_html += f'    <h3 class="cover-author">{author}</h3>\n'
-        if date:
-            cover_html += f'    <p class="cover-date">{date}</p>\n'
-            
-        cover_html += '</div>\n<div style="page-break-after: always;"></div>\n\n'
-    
-    merged_content = cover_html
-
-    
-    for f in files:
-        with open(f, 'r', encoding='utf-8') as file_in:
-            merged_content += file_in.read() + "\n\n"
-            
-    manoscritto_path = responses_dir / f"{project_name}_Manoscritto.md"
-    with open(manoscritto_path, 'w', encoding='utf-8') as file_out:
-        file_out.write(merged_content)
-        
-    typer.echo(f"✅ Manoscritto unito salvato in: {manoscritto_path}")
-    
-    pdf_path = responses_dir / f"{project_name}.pdf"
-    script_path = Path("core") / "export_module" / "build_pdfs.js"
-    
-    if not script_path.exists():
-        typer.echo(f"❌ Script di esportazione PDF non trovato in {script_path}")
-        raise typer.Exit(1)
-        
-    typer.echo("🚀 Generazione PDF in corso tramite Node.js (KaTeX + CSS)...")
+    typer.echo("🎓 Esportazione in corso...")
     try:
-        # Usa node.exe o node a seconda del PATH
-        result = subprocess.run(["node", str(script_path), str(manoscritto_path), str(pdf_path)], check=True)
-        typer.echo(f"🎉 Esportazione PDF completata! File: {pdf_path}")
-    except FileNotFoundError:
-        typer.echo("❌ NodeJS ('node') non trovato nel PATH. Installa Node.js per esportare i PDF.")
-    except subprocess.CalledProcessError as e:
-        typer.echo(f"❌ Errore durante l'esecuzione dello script Node.js: {e}")
+        if format == "docx":
+            pm.compiler.compile_docx(project, output_file)
+        else:
+            if engine == "web":
+                pm.compiler.compile_web(project, output_file)
+            else:
+                pm.compiler.compile(project, output_file)
+        typer.echo(f"🎉 Esportazione completata: {output_file}")
+    except Exception as e:
+        typer.echo(f"❌ Errore: {str(e)}")
+        raise typer.Exit(1)
 
 @app.command()
 def clear_all():
@@ -440,6 +394,62 @@ def status():
     """Mostra lo stato attuale del database locale (Notebook attivi)."""
     state = _load_state()
     typer.echo(json.dumps(state, indent=2))
+
+@app.command()
+def init(
+    project_name: str = typer.Argument(..., help="Nome del nuovo progetto accademico")
+):
+    """
+    MODULO PROGETTO: Inizializza una nuova struttura progetto per tesi/paper.
+    """
+    from core.academic.lib.project import ProjectManager
+    from pathlib import Path
+    
+    try:
+        pm = ProjectManager(Path.cwd() / "Projects")
+        project_dir = pm.init_project(project_name)
+        typer.echo(f"✅ Progetto accademico '{project_name}' inizializzato in: {project_dir}")
+    except Exception as e:
+        typer.echo(f"❌ Errore durante l'inizializzazione: {e}")
+        raise typer.Exit(1)
+
+@app.command()
+def lint(
+    project_name: str = typer.Argument(..., help="Nome del progetto da validare")
+):
+    """
+    MODULO REVISIONE: Verifica l'integrità dei file e le citazioni mancanti.
+    """
+    from core.academic.lib.project import ProjectManager
+    from pathlib import Path
+    
+    pm = ProjectManager(Path.cwd() / "Projects")
+    
+    if project_name == ".":
+        project_dir = Path.cwd()
+    else:
+        project_dir = Path.cwd() / "Projects" / project_name
+    
+    if not project_dir.exists():
+        typer.echo(f"❌ Progetto non trovato: {project_dir}")
+        raise typer.Exit(1)
+        
+    typer.echo(f"🔍 Avvio linting per '{project_name}'...")
+    
+    try:
+        issues = pm.validate_structure(project_dir, fix=False)
+        cit_issues = pm.validate_citations(project_dir)
+        
+        all_issues = issues + cit_issues
+        if not all_issues:
+            typer.echo("✅ Nessun problema trovato. Il progetto è perfetto!")
+        else:
+            typer.echo(f"⚠️  Trovati {len(all_issues)} problemi:")
+            for issue in all_issues:
+                typer.echo(f"  - {issue}")
+    except Exception as e:
+        typer.echo(f"❌ Errore durante il linting: {e}")
+        raise typer.Exit(1)
 
 if __name__ == "__main__":
     app()

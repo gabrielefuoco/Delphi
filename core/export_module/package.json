@@ -13,6 +13,7 @@
     "katex": "^0.17.0",
     "marked-katex-extension": "^5.1.10",
     "md-to-pdf": "^5.2.5",
+    "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5"
   }
 }

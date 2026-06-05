@@ -147,7 +147,7 @@ def _log(msg: str):
     line = f"[{timestamp}] {msg}"
     print(line, flush=True)
 
-async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruolo: str, custom_prompt: str, disabled_sources: List[str] = None) -> Dict[str, str]:
+async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruolo: str, custom_prompt: str, disabled_sources: List[str] = None, academic_mode: bool = False) -> Dict[str, str]:
     INITIAL_PARALLEL = 6
     HALVE_THRESHOLD = 3
     memory_files = {}
@@ -163,7 +163,23 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
     try:
         official_path = str(notebooklm.paths.get_storage_path())
         _log("🔐 Connessione a NotebookLM...")
-        client = await NotebookLMClient.from_storage(official_path, timeout=600)
+        
+        try:
+            client = await NotebookLMClient.from_storage(official_path, timeout=600)
+        except Exception as e:
+            if "Authentication expired" in str(e) or "invalid" in str(e).lower():
+                _log("💥 Sessione scaduta. Avvio procedura di login automatica...")
+                import subprocess
+                import sys
+                res = subprocess.run([sys.executable, "-m", "notebooklm", "login"])
+                if res.returncode == 0:
+                    _log("✅ Login completato. Ritento connessione...")
+                    client = await NotebookLMClient.from_storage(official_path, timeout=600)
+                else:
+                    raise ValueError(f"Login automatico fallito con codice {res.returncode}")
+            else:
+                raise e
+                
         _log("✅ Connessione stabilita.")
 
         template_overhead = len(base_prompt) + len(ruolo) + len(materia)
@@ -236,8 +252,17 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
                             if not content or not content.strip():
                                 raise ValueError("Risposta vuota")
                             
-                            content = re.sub(r'(\s*\[\d+(?:[,\-\s]+\d+)*\](?:\s*,\s*)?)+', ' ', content)
-                            content = re.sub(r'\s+([,.])', r'\1', content)
+                            if academic_mode:
+                                def replace_citation(match):
+                                    text = match.group(0)
+                                    nums = re.findall(r'\d+', text)
+                                    if not nums: return text
+                                    cites = "; ".join(f"@source_{n}" for n in nums)
+                                    return f" [{cites}]"
+                                content = re.sub(r'(?:\s*\[\d+(?:[,\-\s]+\d+)*\](?:\s*,\s*)?)+', replace_citation, content)
+                            else:
+                                content = re.sub(r'(\s*\[\d+(?:[,\-\s]+\d+)*\](?:\s*,\s*)?)+', ' ', content)
+                                content = re.sub(r'\s+([,.])', r'\1', content)
                             content = re.sub(r' +', ' ', content).strip()
                             
                             is_first = sub_idx == 0
