@@ -11,6 +11,95 @@ from .paths import get_templates_dir, get_typst_exe
 logger = logging.getLogger(__name__)
 
 
+def generate_ide_cover_html(title, subtitle, author, date, cover_accent):
+    import re
+    year_match = re.search(r'\b(20\d{2})\b', date)
+    year = year_match.group(1) if year_match else "2026"
+    safe_title = re.sub(r'[^a-zA-Z0-9_]', '_', title.lower())
+    
+    if not cover_accent or not cover_accent.startswith('#'):
+        cover_accent = "#0ea5e9"
+        
+    def adjust_color(hex_color, l_factor):
+        try:
+            hx = hex_color.lstrip('#')
+            if len(hx) == 3: hx = "".join(c*2 for c in hx)
+            r, g, b = tuple(int(hx[i:i+2], 16) for i in (0, 2, 4))
+            import colorsys
+            h, l, s = colorsys.rgb_to_hls(r/255.0, g/255.0, b/255.0)
+            l = max(0, min(1, l * l_factor))
+            nr, ng, nb = colorsys.hls_to_rgb(h, l, s)
+            return f'#{int(nr*255):02x}{int(ng*255):02x}{int(nb*255):02x}'
+        except:
+            return hex_color
+
+    def hex_to_rgba(hex_color, alpha):
+        try:
+            hx = hex_color.lstrip('#')
+            if len(hx) == 3: hx = "".join(c*2 for c in hx)
+            r, g, b = tuple(int(hx[i:i+2], 16) for i in (0, 2, 4))
+            return f"rgba({r},{g},{b},{alpha})"
+        except:
+            return hex_color
+
+    col_dark = adjust_color(cover_accent, 0.7)
+    col_deep = adjust_color(cover_accent, 0.4)
+    col_light = hex_to_rgba(cover_accent, "0.14")
+    
+    style_str = f""" style="--col: {cover_accent}; --col-dark: {col_dark}; --col-deep: {col_deep}; --col-light: {col_light}; --grad: linear-gradient(150deg, {col_deep} 0%, {cover_accent} 55%, {col_light} 100%);" """
+    
+    ln_html = "".join(f"{i}<br>" for i in range(1, 52))
+    
+    words = title.split()
+    if len(words) > 1:
+        title_pro = words[0]
+        title_rest = " " + " ".join(words[1:])
+    else:
+        title_pro = title
+        title_rest = ""
+
+    return f"""
+<div class="page theme-ide"{style_str}>
+<div class="grid"></div>
+<div class="orb orb-a"></div>
+<div class="orb orb-b"></div>
+<div class="side-bar"></div>
+<div class="bg-vol">1</div>
+<div class="ln">{ln_html}</div>
+<div class="dots">
+<div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div>
+<span class="dots-path">~/delphi/projects/{safe_title}/main.py</span>
+</div>
+<div class="content">
+<div class="glass-card card-header">
+<div class="header-comment"># {title}</div>
+<div class="import-line"><span class="kw">from</span> delphi.projects <span class="kw">import</span> <span class="fn">{safe_title}</span></div>
+</div>
+<div class="section-title">
+<div class="title-row">
+<span class="title-pro">{title_pro}</span><span class="title-python">{title_rest}</span>
+</div>
+<div class="vtag">{{ "type": "academic_paper", "status": "COMPILED" }}</div>
+</div>
+<div class="glass-card card-desc">
+<div class="desc-label"><span class="kw">description</span>: <span class="fn">str</span> =</div>
+<div class="desc-value"><span class="str">"{subtitle}"</span></div>
+</div>
+<div class="glass-card card-author">
+<div class="author-line"><span class="kw">const</span> author: <span class="fn">Author</span> = {{ name: <span class="str">"{author}"</span>, role: <span class="str">"Researcher"</span> }}</div>
+<div class="rule"></div>
+<div class="year-line">
+<span class="kw">export default</span> {{&nbsp;edition: <span class="str">{year}</span>,&nbsp;license: <span class="str">"MIT"</span>&nbsp;}}
+</div>
+</div>
+</div>
+<div class="footer">
+<span class="footer-status">[Status: DONE]</span>
+<span>Delphi Academic Engine &middot; v0.1.0 &middot; &copy; {year}</span>
+</div>
+</div>
+"""
+
 class Compiler:
     """
     Compiles Delphi projects to PDF (via Typst) or DOCX (via Pandoc).
@@ -586,8 +675,21 @@ class Compiler:
         author_raw = meta.get('author', '')
         date_raw = meta.get('date', '')
         
-        subtitle_div = f'    <div class="cover-subtitle">{subtitle_raw}</div>\n' if subtitle_raw else ''
-        cover_html = f"""<div class="cover-page theme-academic">
+        cover_theme = meta.get('cover_theme', 'theme-academic')
+        cover_accent = meta.get('cover_accent_color', '')
+        cover_font = meta.get('cover_font', '')
+        
+        style_attrs = []
+        if cover_accent: style_attrs.append(f"--accent-color: {cover_accent}")
+        if cover_font: style_attrs.append(f"--main-font: {cover_font}")
+        style_str = f' style="{"; ".join(style_attrs)}"' if style_attrs else ''
+        
+        if not subtitle_raw: subtitle_raw = "Documentazione generata automaticamente tramite Delphi Engine."
+        subtitle_div = f'    <div class="cover-subtitle">{subtitle_raw}</div>\n'
+        if cover_theme == 'theme-ide':
+            cover_html = generate_ide_cover_html(title_raw, subtitle_raw, author_raw, date_raw, cover_accent)
+        else:
+            cover_html = f"""<div class="cover-page {cover_theme}"{style_str}>
     <div class="cover-title">{title_raw}</div>
 {subtitle_div}    <div class="cover-author">{author_raw}</div>
     <div class="cover-date">{date_raw}</div>
@@ -647,8 +749,21 @@ class Compiler:
         author = meta.get('author', '')
         date = meta.get('date', '')
         
-        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n' if subtitle else ''
-        cover_html = f"""<div class="cover-page theme-cyber-neuro">
+        cover_theme = meta.get('cover_theme', 'theme-academic')
+        cover_accent = meta.get('cover_accent_color', '')
+        cover_font = meta.get('cover_font', '')
+        
+        style_attrs = []
+        if cover_accent: style_attrs.append(f"--accent-color: {cover_accent}")
+        if cover_font: style_attrs.append(f"--main-font: {cover_font}")
+        style_str = f' style="{"; ".join(style_attrs)}"' if style_attrs else ''
+        
+        if not subtitle: subtitle = "Documentazione generata automaticamente tramite Delphi Engine."
+        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n'
+        if cover_theme == 'theme-ide':
+            cover_html = generate_ide_cover_html(title, subtitle, author, date, cover_accent)
+        else:
+            cover_html = f"""<div class="cover-page {cover_theme}"{style_str}>
     <div class="cover-content">
         <div class="cover-title">{title}</div>
 {subtitle_div}        <div class="cover-author">{author}</div>

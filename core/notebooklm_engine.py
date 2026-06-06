@@ -29,6 +29,10 @@ if not logger.handlers:
 PROMPT_GENERAZIONE = r"""Agisci come un {ruolo} esperto di {materia}.
 Il tuo compito è generare una dispensa di appunti accademici perfetta, completa ed estremamente dettagliata basandoti rigorosamente ed ESCLUSIVAMENTE sui documenti e file che ti ho fornito.
 
+Target: Livello Universitario Magistrale. Usa un tono accademico, coerente e rigoroso. Nessun riduzionismo o metafore infantili.
+Stile Cognitivo: Usa ragionamenti per analogie strutturali e pattern sistemici/informatici. Spiega tramite relazioni causa-effetto e flussi logici.
+Formalismo: Se l'argomento prevede dimostrazioni matematiche o formalismi puri, mostrali SOLO alla fine della spiegazione concettuale.
+
 Di seguito ti fornirò un blocco specifico dell'indice. Voglio che tu analizzi tutti i documenti caricati, estragga e strutturi ogni singola informazione chiave, definizioni, riflessioni teoriche ed esempi. Non devi fare un riassunto, ma una trasposizione estesa ed esaustiva.
 
 Regole:

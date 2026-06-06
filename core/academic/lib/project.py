@@ -111,7 +111,10 @@ class ProjectManager:
                 "title": name,
                 "author": "Author Name",
                 "date": datetime.now().strftime("%Y-%m-%d"),
-                "version": "0.1.0"
+                "version": "0.1.0",
+                "cover_theme": "theme-academic",
+                "cover_accent_color": "",
+                "cover_font": ""
             },
             "order": []
         }

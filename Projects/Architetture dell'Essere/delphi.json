@@ -3,7 +3,10 @@
     "title": "Architetture dell'Essere",
     "author": "Delphi",
     "date": "2026-06-06",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "cover_theme": "theme-ide",
+    "cover_accent_color": "#f3ff00",
+    "cover_font": ""
   },
   "compilation": {
     "pandoc_extensions": "+tex_math_dollars",

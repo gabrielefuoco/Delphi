@@ -23,6 +23,9 @@ def load_chunks(chunks_file: str, chunks_ids: str = None) -> List:
         with open(chunks_file, "r", encoding="utf-8") as f:
             raw_data = json.load(f)
 
+        if isinstance(raw_data, dict):
+            raw_data = raw_data.get("chapters", [])
+
         if chunks_ids:
             allowed_ids = [x.strip() for x in chunks_ids.split(",")]
             filtered_data = []
@@ -38,6 +41,21 @@ def load_chunks(chunks_file: str, chunks_ids: str = None) -> List:
         with open(chunks_file, "r", encoding="utf-8") as f:
             content = f.read()
         return [c.strip() for c in content.split("\n\n") if c.strip()]
+
+
+def load_chunks_metadata(chunks_file: str) -> dict:
+    """Load metadata (materia, ruolo) from chunks.json if it's an object."""
+    if not chunks_file or not os.path.exists(chunks_file) or not chunks_file.endswith(".json"):
+        return {}
+    import json
+    with open(chunks_file, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+    if isinstance(raw_data, dict):
+        return {
+            "materia": raw_data.get("materia"),
+            "ruolo": raw_data.get("ruolo")
+        }
+    return {}
 
 
 def prepare_chapter_directories(

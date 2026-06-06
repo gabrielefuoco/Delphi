@@ -214,8 +214,8 @@ def curate(
 @app.command()
 def generate(
     project_name: str = typer.Argument(..., help="Nome del progetto"),
-    materia: str = typer.Option("Generale", help="La materia o l'argomento (es. Ingegneria del Software)"),
-    ruolo: str = typer.Option("Tutor Accademico", help="Il ruolo che l'LLM deve assumere"),
+    materia: str = typer.Option(None, help="La materia o l'argomento (es. Ingegneria del Software)"),
+    ruolo: str = typer.Option(None, help="Il ruolo che l'LLM deve assumere"),
     prompt: str = typer.Option(None, help="Prompt personalizzato di estrazione (se non fornito usa il default). Usa {indice_corrente} per il chunk."),
     chunks_file: str = typer.Option(None, help="File TXT o JSON con gli argomenti (indice)."),
     chunks_ids: str = typer.Option(None, help="ID dei chunk da generare separati da virgola (se json)"),
@@ -233,9 +233,14 @@ def generate(
     disabled_sources = nb.get("disabled_sources", [])
     typer.echo(f"🏗️ Avvio Generazione per il progetto: {project_name}...")
     
-    from core.generation_manager import load_chunks, prepare_chapter_directories, make_disk_callback
+    from core.generation_manager import load_chunks, prepare_chapter_directories, make_disk_callback, load_chunks_metadata
     
     chunks_data = load_chunks(chunks_file, chunks_ids)
+    chunks_meta = load_chunks_metadata(chunks_file)
+    
+    final_materia = materia or chunks_meta.get("materia") or "Generale"
+    final_ruolo = ruolo or chunks_meta.get("ruolo") or "Tutor Accademico"
+
     if not chunks_file or not os.path.exists(chunks_file or ""):
         typer.echo("⚠️ Nessun file chunks fornito. Verrà generato un singolo chunk base.")
 
@@ -260,7 +265,7 @@ def generate(
             on_save=lambda chap, fname: typer.echo(f"💾 Salvato Paragrafo in {chap}/{fname}")
         )
 
-        await generation_task(nb_id, chunks_data, materia, ruolo, prompt, disabled_sources, academic, on_chunk_completed=callback)
+        await generation_task(nb_id, chunks_data, final_materia, final_ruolo, prompt, disabled_sources, academic, on_chunk_completed=callback)
 
     asyncio.run(run_generate())
 
@@ -439,19 +444,23 @@ def init(
         
         chunks_file = project_dir / "chunks.json"
         if not chunks_file.exists():
-            default_chunks = [
-                {
-                    "id": "01_Introduzione",
-                    "title": "Introduzione",
-                    "paragraphs": [
-                        {
-                            "id": "1",
-                            "title": "Panoramica Generale",
-                            "content": "Inserisci qui il prompt che l'agente dovrà usare per estrarre questo paragrafo dai documenti."
-                        }
-                    ]
-                }
-            ]
+            default_chunks = {
+                "materia": "Generale",
+                "ruolo": "Tutor Accademico",
+                "chapters": [
+                    {
+                        "id": "01_Introduzione",
+                        "title": "Introduzione",
+                        "paragraphs": [
+                            {
+                                "id": "1",
+                                "title": "Panoramica Generale",
+                                "content": "Inserisci qui il prompt che l'agente dovrà usare per estrarre questo paragrafo dai documenti."
+                            }
+                        ]
+                    }
+                ]
+            }
             chunks_file.write_text(json.dumps(default_chunks, indent=2, ensure_ascii=False), encoding="utf-8")
             
         typer.echo(f"✅ Progetto accademico '{project_name}' inizializzato in: {project_dir}")
@@ -501,8 +510,8 @@ def lint(
 @app.command("create-launcher")
 def create_launcher(
     project_name: str = typer.Argument(..., help="Nome del progetto"),
-    materia: str = typer.Option("Generale", help="La materia o l'argomento (es. Ingegneria del Software)"),
-    ruolo: str = typer.Option("Tutor Accademico", help="Il ruolo che l'LLM deve assumere"),
+    materia: str = typer.Option(None, help="La materia o l'argomento (es. Ingegneria del Software)"),
+    ruolo: str = typer.Option(None, help="Il ruolo che l'LLM deve assumere"),
     prompt: str = typer.Option(None, help="Prompt personalizzato di estrazione (se non fornito usa il default). Usa {indice_corrente} per il chunk."),
     chunks_file: str = typer.Option(None, help="File TXT o JSON con gli argomenti (indice)."),
     chunks_ids: str = typer.Option(None, help="ID dei chunk da generare separati da virgola (se json)"),
@@ -513,10 +522,51 @@ def create_launcher(
     """
     from pathlib import Path
     import sys
+    import os
+    
+    # --- VALIDAZIONE LUNGHEZZA PROMPT ---
+    from core.generation_manager import load_chunks, load_chunks_metadata
+    from core.notebooklm_engine import PROMPT_GENERAZIONE
+    
+    project_dir = Path.cwd() / "Projects" / project_name
+    actual_chunks_file = chunks_file or str(project_dir / "chunks.json")
+    
+    if os.path.exists(actual_chunks_file):
+        chunks_data = load_chunks(actual_chunks_file, chunks_ids)
+        chunks_meta = load_chunks_metadata(actual_chunks_file)
+        
+        final_materia = materia or chunks_meta.get("materia") or "Generale"
+        final_ruolo = ruolo or chunks_meta.get("ruolo") or "Tutor Accademico"
+        
+        base_prompt = prompt or PROMPT_GENERAZIONE
+        final_prompt_template = base_prompt.replace("{ruolo}", final_ruolo).replace("{materia}", final_materia)
+        # Sottraiamo la lunghezza del segnaposto per calcolare i caratteri reali
+        template_overhead = len(final_prompt_template) - len("{indice_corrente}")
+        
+        for idx, chunk in enumerate(chunks_data, start=1):
+            if isinstance(chunk, dict):
+                for p_idx, p in enumerate(chunk.get("paragraphs", [])):
+                    if isinstance(p, dict):
+                        md = f"## {p.get('title', 'Paragrafo')}\n"
+                        if p.get("context"):
+                            md += f"[Contesto di Posizionamento: {p['context']}]\n"
+                        for pt in p.get("points", []):
+                            md += f"- {pt}\n"
+                        
+                        total_len = template_overhead + len(md)
+                        if total_len > 3900:
+                            typer.echo(f"\n❌ [ERRORE LIMITE NOTEBOOKLM]")
+                            typer.echo(f"Il paragrafo '{p.get('title', 'Sconosciuto')}' (Capitolo {chunk.get('id', idx)}) genera un prompt di {total_len} caratteri.")
+                            typer.echo(f"NotebookLM ha un limite rigido di 3900 caratteri.")
+                            typer.echo("-> L'Agente deve modificare il file chunks.json e sintetizzare 'context' o 'points' prima di procedere.\n")
+                            raise typer.Exit(1)
+    # --- FINE VALIDAZIONE ---
 
     cmd = [f'py delphi_cli.py generate "{project_name}"']
-    cmd.append(f'--materia "{materia}"')
-    cmd.append(f'--ruolo "{ruolo}"')
+    if materia:
+        cmd.append(f'--materia "{materia}"')
+    if ruolo:
+        cmd.append(f'--ruolo "{ruolo}"')
     
     if prompt:
         cmd.append(f'--prompt "{prompt}"')
