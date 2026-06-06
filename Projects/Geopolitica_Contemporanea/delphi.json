@@ -6,7 +6,8 @@
     "version": "0.1.0"
   },
   "order": [
-    "01_Capitolo 1"
+    "01_cap1",
+    "02_cap2"
   ],
   "notebook": {
     "id": "bad23e3d-1e91-4972-979f-bb7092a300e0",
