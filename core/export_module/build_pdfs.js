@@ -102,6 +102,7 @@ const processMarkdown = (filePath) => {
                 format: 'A4',
                 printBackground: true,
                 displayHeaderFooter: true,
+                margin: { top: '25mm', bottom: '25mm', left: '25mm', right: '25mm' },
                 footerTemplate: `
                     <div style="width: 100%; font-size: 10px; font-family: sans-serif; text-align: center; color: #555;">
                         <span class="pageNumber"></span> / <span class="totalPages"></span>

@@ -11,9 +11,6 @@ from .citation_service import BibliographyService
 import json
 from datetime import datetime
 
-import json
-from datetime import datetime
-
 def resolve_project_root(anchor_file: Path = None) -> Path:
     """
     Determines the project root.
@@ -38,73 +35,7 @@ class ProjectManager:
         self.root_path = Path(root_path).resolve()
         self.compiler = Compiler()
         self.bib_service = BibliographyService()
-        self._rag_service = None
 
-    @property
-    def rag_service(self):
-        if self._rag_service is None:
-            from .rag_service import RAGService
-            self._rag_service = RAGService()
-        return self._rag_service
-
-    @property
-    def zotero_service(self):
-        if not hasattr(self, '_zotero_service') or self._zotero_service is None:
-            from .zotero_service import ZoteroService
-            # scripts/lib/project.py -> scripts/lib -> scripts -> delphi-manager
-            skill_root = Path(__file__).parent.parent.parent
-            self._zotero_service = ZoteroService(skill_root)
-        return self._zotero_service
-
-    @property
-    def research_service(self):
-        if not hasattr(self, '_research_service') or self._research_service is None:
-            from .research_service import ResearchService
-            self._research_service = ResearchService(self.root_path)
-        return self._research_service
-
-    def sync_zotero(self, project_dir: Path) -> dict:
-        config = self._load_config(project_dir)
-        collection_id = config.get("ZOTERO_COLLECTION_ID")
-        
-        if not collection_id:
-            return {"success": False, "message": "No ZOTERO_COLLECTION_ID found in delphi.json"}
-            
-        # 1. Sync Bibliography
-        bib_path = project_dir / "references.bib"
-        if not self.zotero_service.sync_bibliography(collection_id, bib_path):
-             return {"success": False, "message": "Failed to sync bibliography from Zotero."}
-             
-        # Reload bib service
-        self.bib_service.load_bibliography(bib_path)
-
-        # 2. Sync Attachments
-        zotero_files_dir = project_dir / "assets" / "research" / "zotero"
-        downloaded = self.zotero_service.download_attachments(collection_id, zotero_files_dir)
-        
-        # 3. Update RAG (Incremental)
-        # We scan the whole dir to catching anything new/modified
-        # rag_service.sync_research handles logic.
-        if zotero_files_dir.exists():
-            files = list(zotero_files_dir.glob("*.pdf")) # Support other types?
-            # Also text files? self.zotero_service only downloads PDFs currently.
-            pass
-            
-        # We need to get ALL files in that dir to sync properly (in case we deleted some? RAG usually additive only with my implementation)
-        # Actually my incremental implementation handles new/modified, but doesn't handle deletions.
-        # MVP: additive is fine.
-        
-        files = []
-        if zotero_files_dir.exists():
-             files.extend(list(zotero_files_dir.glob("*.pdf")))
-        
-        if files:
-            self.rag_service.sync_research(project_dir, files)
-            
-        return {
-            "success": True, 
-            "message": f"Synced Zotero collection {collection_id}. Updated references.bib and processed {len(files)} research files."
-        }
 
     def _load_config(self, project_dir: Path) -> dict:
         config_path = project_dir / "delphi.json"
@@ -407,14 +338,20 @@ class ProjectManager:
         config = self._load_config(project_dir)
         original_order = config.get("order", [])
         
-        # 1. Check if all chapters in config exist
+        # 1. Check if all chapters in config exist and have content
         missing_chapters = []
         chapters_dir = project_dir / "chapters"
         for chap_name in original_order:
-            if not (chapters_dir / chap_name).exists():
+            chap_path = chapters_dir / chap_name
+            if not chap_path.exists():
                 msg = f"MISSING_CHAPTER: '{chap_name}' listed in config but not found on disk."
                 issues.append(msg)
                 missing_chapters.append(chap_name)
+            else:
+                md_files = list(chap_path.glob("*.md"))
+                if not md_files:
+                    msg = f"EMPTY_CHAPTER: '{chap_name}' contains no .md files."
+                    issues.append(msg)
         
         if fix and missing_chapters:
             # Remove missing chapters from config

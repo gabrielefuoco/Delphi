@@ -1,0 +1,103 @@
+[
+  {
+    "id": "01_cap1",
+    "title": "I Pilastri del Nuovo Ordine Multipolare",
+    "paragraphs": [
+      {
+        "id": "1",
+        "title": "Il duopolio imperfetto: Stati Uniti e Cina",
+        "context": "Il concetto di 'Disaccoppiamento' (decoupling) economico e tecnologico; la rivalità nello Stretto di Taiwan e nel Mar Cinese Meridionale; la transizione da un mondo uniplare a una competizione bipolare di fondo.",
+        "points": [
+          "Disaccoppiamento (decoupling) economico e tecnologico",
+          "Rivalità nello Stretto di Taiwan e nel Mar Cinese Meridionale",
+          "Transizione da un mondo uniplare a una competizione bipolare di fondo",
+          "Fonti: Foreign Affairs (CFR), Limes (Rivista italiana di geopolitica), report del Center for Strategic and International Studies (CSIS)"
+        ]
+      },
+      {
+        "id": "2",
+        "title": "Il peso delle \"Medie Potenze\" e il Sud Globale",
+        "context": "Il ruolo di pivot di paesi come India, Turchia, Arabia Saudita e Brasile; il rifiuto dell'allineamento automatico con l'Occidente; l'allargamento dei BRICS+ e la ricerca di un sistema finanziario alternativo al dollaro.",
+        "points": [
+          "Ruolo di pivot di paesi come India, Turchia, Arabia Saudita e Brasile",
+          "Rifiuto dell'allineamento automatico con l'Occidente",
+          "Allargamento dei BRICS+",
+          "Ricerca di un sistema finanziario alternativo al dollaro",
+          "Fonti: ISPI (Istituto Gli Studi di Politica Internazionale), The Economist, paper della Brookings Institution"
+        ]
+      },
+      {
+        "id": "3",
+        "title": "La geopolitica delle risorse: Semiconduttori e Transizione Energetica",
+        "context": "La dipendenza critica dalle terre rare e dai minerali strategici (litio, cobalto); la \"guerra dei chip\" (USA-Taiwan-Cina); la sicurezza energetica tra il declino dei combustibili fossili e il controllo delle nuove filiere verdi.",
+        "points": [
+          "Dipendenza critica dalle terre rare e dai minerali strategici (litio, cobalto)",
+          "La 'guerra dei chip' (USA-Taiwan-Cina)",
+          "Sicurezza energetica tra il declino dei combustibili fossili e il controllo delle nuove filiere verdi",
+          "Fonti: Chris Miller (autore di Chip War), report dell'Iea (International Energy Agency), Geopolitica.info"
+        ]
+      },
+      {
+        "id": "4",
+        "title": "Alleanze formali e minilateralismo",
+        "context": "Il rilancio e l'allargamento della NATO; la nascita di accordi più stretti e flessibili come l'AUKUS (USA, UK, Australia) e il Quad; la difficoltà dell'Unione Europea nel trovare un'autonomia strategica militare.",
+        "points": [
+          "Rilancio e allargamento della NATO",
+          "Nascita di accordi più stretti e flessibili come l'AUKUS (USA, UK, Australia) e il Quad",
+          "Difficoltà dell'Unione Europea nel trovare un'autonomia strategica militare",
+          "Fonti: Chatham House, European Council on Foreign Relations (ECFR), IAI (Istituto Affari Internazionali)"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "02_cap2",
+    "title": "I Nuovi Fronti dello Scontro Globale",
+    "paragraphs": [
+      {
+        "id": "1",
+        "title": "Conflitti di logoramento e il ritorno della guerra cinetica",
+        "context": "La guerra in Ucraina e l'impatto sulla sicurezza europea; l'instabilità cronica in Medio Oriente e le minacce alle rotte commerciali (es. Mar Rosso e Canale di Suez); la fine dell'illusione della \"pace globale\".",
+        "points": [
+          "La guerra in Ucraina e l'impatto sulla sicurezza europea",
+          "Instabilità cronica in Medio Oriente e minacce alle rotte commerciali (es. Mar Rosso e Canale di Suez)",
+          "La fine dell'illusione della 'pace globale'",
+          "Fonti: Institute for the Study of War (ISW), Le Monde Diplomatique, analisi del SIPRI (Stockholm International Peace Research Institute)"
+        ]
+      },
+      {
+        "id": "2",
+        "title": "La guerra cognitiva, Cyber e Intelligenza Artificiale",
+        "context": "Attacchi cyber alle infrastrutture critiche; campagne di disinformazione e interferenze elettorali tramite Deepfake e AI; l'uso militare dei droni e l'automazione dei sistemi d'arma.",
+        "points": [
+          "Attacchi cyber alle infrastrutture critiche",
+          "Campagne di disinformazione e interferenze elettorali tramite Deepfake e AI",
+          "L'uso militare dei droni e l'automazione dei sistemi d'arma",
+          "Fonti: Harvard Kennedy School Belfer Center, report di Microsoft Threat Intelligence, Center for a New American Security (CNAS)"
+        ]
+      },
+      {
+        "id": "3",
+        "title": "Nuove frontiere geografiche: L'Artico e lo Spazio",
+        "context": "Lo scioglimento dei ghiacci artici e l'apertura di nuove rotte commerciali e giacimenti di gas/petrolio; la militarizzazione dell'orbita terrestre bassa; la competizione per il ritorno sulla Luna (programma Artemis vs coalizione sino-russa).",
+        "points": [
+          "Lo scioglimento dei ghiacci artici e l'apertura di nuove rotte commerciali e giacimenti di gas/petrolio",
+          "La militarizzazione dell'orbita terrestre bassa",
+          "La competizione per il ritorno sulla Luna (programma Artemis vs coalizione sino-russa)",
+          "Fonti: RAND Corporation, Polar Journal, SpaceNews"
+        ]
+      },
+      {
+        "id": "4",
+        "title": "Demografia e migrazioni come vettori geopolitici",
+        "context": "L'inverno demografico dell'Occidente e della Cina rispetto all'esplosione giovanile dell'Africa subsahariana; l'uso dei flussi migratori come \"arma ibrida\" (es. confini bielorussi o nordafricani); la fuga dei cervelli e la competizione per i talenti tecnologici.",
+        "points": [
+          "L'inverno demografico dell'Occidente e della Cina rispetto all'esplosione giovanile dell'Africa subsahariana",
+          "L'uso dei flussi migratori come 'arma ibrida' (es. confini bielorussi o nordafricani)",
+          "La fuga dei cervelli e la competizione per i talenti tecnologici",
+          "Fonti: UN DESA (Dipartimento per gli affari economici e sociali delle Nazioni Unite), Population Reference Bureau (PRB), studi ISPI"
+        ]
+      }
+    ]
+  }
+]

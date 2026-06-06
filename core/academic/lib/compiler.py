@@ -65,6 +65,77 @@ class Compiler:
         # Escape backslashes first, then quotes.
         return str(text).replace("\\", "\\\\").replace('"', '\\"')
 
+    def _sanitize_paragraph_headers(self, project: Project, chapter_title: str, paragraph_title: str, content: str) -> str:
+        """
+        Pulisce gli header duplicati o errati in cima al paragrafo, inietta 
+        il titolo H2 corretto estrapolandolo da chunks.json, e corregge
+        imperfezioni tipiche del Markdown generato dall'LLM.
+        """
+        import re
+        import json
+        
+        # 1. Rimuovi tutti i vecchi header (H1/H2) all'inizio del file
+        while re.match(r'^\s*#+', content):
+            content = re.sub(r'^\s*#+.*?\n', '', content, count=1).lstrip()
+            
+        # 2. Rimuovi auto-numerazione interna generata dall'LLM (es. ### 1.1.1 Sotto-argomento -> ### Sotto-argomento)
+        content = re.sub(r'^(#{2,})\s+\d+(?:\.\d+)*\.?\s+', r'\1 ', content, flags=re.MULTILINE)
+
+        # 3. Sanitizza gli elenchi puntati: assicura interlinea vuota e converte '* ' in '- '
+        lines = content.split('\n')
+        new_lines = []
+        for j, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith('* '):
+                # Se la linea precedente non è vuota e non è un elemento di lista, aggiungi un a-capo per isolare la lista
+                if len(new_lines) > 0 and new_lines[-1].strip() != '' and not new_lines[-1].strip().startswith('- '):
+                    new_lines.append('')
+                indent = line[:len(line) - len(line.lstrip())]
+                new_lines.append(indent + '- ' + stripped[2:])
+            else:
+                new_lines.append(line)
+        content = '\n'.join(new_lines)
+            
+        # 4. Cerca il titolo esatto nel chunks.json
+        real_title = "Paragrafo"
+        chunks_file = project.path / "chunks.json"
+        if chunks_file.exists():
+            try:
+                cdata = json.loads(chunks_file.read_text(encoding="utf-8"))
+                for c in cdata:
+                    safe_id = re.sub(r'[\\/*?:"<>|]', "", c.get("id", ""))
+                    if safe_id == chapter_title:
+                        for p in c.get("paragraphs", []):
+                            p_safe_id = re.sub(r'[\\/*?:"<>|]', "", p.get("id", ""))
+                            if p_safe_id == paragraph_title:
+                                real_title = p.get("title", "Paragrafo")
+                                break
+                        break
+            except Exception:
+                pass
+                
+        # 5. Restituisci il testo sanitizzato
+        return f"## {real_title}\n\n{content}"
+
+    def _get_chapter_title(self, project: Project, folder_name: str) -> str:
+        """
+        Tenta di recuperare il titolo originale del capitolo dal chunks.json.
+        Utile perché adesso usiamo ID compatti (es. '01_cap1') per le cartelle.
+        """
+        import json
+        import re
+        chunks_file = project.path / "chunks.json"
+        if chunks_file.exists():
+            try:
+                cdata = json.loads(chunks_file.read_text(encoding="utf-8"))
+                for c in cdata:
+                    safe_id = re.sub(r'[\\/*?:"<>|]', "", c.get("id", ""))
+                    if safe_id == folder_name:
+                        return c.get("title", folder_name)
+            except Exception:
+                pass
+        return re.sub(r'^\d+[_ ]+', '', folder_name)
+
     def _get_template_header(self, project: Project) -> str:
         # Load logic
         import json
@@ -391,8 +462,8 @@ class Compiler:
                 chap_includes.append("#pagebreak(weak: true)")
             
             # Add a chapter heading (Level 1)
-            # Remove prefix like '01_' from folder name
-            display_title = re.sub(r'^\d+[_ ]+', '', chapter.title)
+            # Remove prefix like '01_' from folder name or use chunks.json
+            display_title = self._get_chapter_title(project, chapter.title)
             if chapter.title.startswith('00_') or not re.match(r'^\d+', chapter.title):
                 chap_includes.append(f'#heading(numbering: none, outlined: true)[{display_title}]\n')
             else:
@@ -404,8 +475,11 @@ class Compiler:
                 target_typ = build_dir / rel_path.with_suffix(".typ")
                 target_typ.parent.mkdir(parents=True, exist_ok=True)
                 
+                # Sanitizzazione on-the-fly dell'header e iniezione H2
+                p_text = self._sanitize_paragraph_headers(project, chapter.title, p.title, p.content)
+                
                 # Pre-process content: Normalize image paths using class patterns
-                processed_content = self._normalize_image_paths(p.content)
+                processed_content = self._normalize_image_paths(p_text)
                 
                 # Normalize headings: ensure the highest heading level in the paragraph is ## (level 2)
                 # because the chapter title itself is level 1 (=)
@@ -508,12 +582,14 @@ class Compiler:
         cover_pdf_path = build_dir / "web_cover.pdf"
         
         title_raw = meta.get('title', project.name)
+        subtitle_raw = meta.get('subtitle', '')
         author_raw = meta.get('author', '')
         date_raw = meta.get('date', '')
         
+        subtitle_div = f'    <div class="cover-subtitle">{subtitle_raw}</div>\n' if subtitle_raw else ''
         cover_html = f"""<div class="cover-page theme-academic">
     <div class="cover-title">{title_raw}</div>
-    <div class="cover-author">{author_raw}</div>
+{subtitle_div}    <div class="cover-author">{author_raw}</div>
     <div class="cover-date">{date_raw}</div>
 </div>
 """
@@ -567,13 +643,17 @@ class Compiler:
                 
         meta = config.get('metadata', {})
         title = meta.get('title', project.name)
+        subtitle = meta.get('subtitle', '')
         author = meta.get('author', '')
         date = meta.get('date', '')
         
-        cover_html = f"""<div class="cover-page theme-academic">
-    <div class="cover-title">{title}</div>
-    <div class="cover-author">{author}</div>
-    <div class="cover-date">{date}</div>
+        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n' if subtitle else ''
+        cover_html = f"""<div class="cover-page theme-cyber-neuro">
+    <div class="cover-content">
+        <div class="cover-title">{title}</div>
+{subtitle_div}        <div class="cover-author">{author}</div>
+        <div class="cover-date">{date}</div>
+    </div>
 </div>
 """
         cover_md_path.write_text(cover_html, encoding="utf-8")
@@ -581,27 +661,43 @@ class Compiler:
         # Generazione Indice e Contenuto
         import re
         toc_lines = [
-            "<div class='toc-page' style='page-break-after: always; padding-top: 50px;'>",
-            "<h1 class='toc-title' style='font-size: 2.5em; border-bottom: 2px solid #eaecef; padding-bottom: 10px; margin-bottom: 30px;'>Indice</h1>",
-            "<ul class='toc-list' style='list-style: none; padding-left: 0; font-size: 1.2em; line-height: 1.8;'>"
+            "<div class='toc-page' style='page-break-after: always; padding-top: 50px; font-family: \"Georgia\", serif;'>",
+            "<h1 class='toc-title' style='font-size: 2.5em; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 30px; color: #222;'>Indice</h1>",
+            "<ul class='toc-list' style='list-style: none; padding-left: 0; margin: 0;'>"
         ]
         
         body_content = []
         
         for i, chapter in enumerate(project.chapters, 1):
-            display_title = re.sub(r'^\d+[_ ]+', '', chapter.title)
+            display_title = self._get_chapter_title(project, chapter.title)
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', display_title.lower()).strip('-')
             
             # Voce Indice
             if chapter.title.startswith('00_') or not re.match(r'^\d+', chapter.title):
-                toc_lines.append(f"<li><a href='#{slug}' style='text-decoration: none; color: #0366d6;'>{display_title}</a></li>")
+                toc_lines.append(f"<li style='margin-top: 20px; margin-bottom: 8px;'><a href='#{slug}' style='text-decoration: none; color: #111; font-weight: 600; font-size: 1.2em; letter-spacing: 0.5px;'>{display_title}</a></li>")
                 body_content.append(f"<h1 id='{slug}' class='unnumbered'>{display_title}</h1>\n")
             else:
-                toc_lines.append(f"<li><a href='#{slug}' style='text-decoration: none; color: #0366d6;'><b>Capitolo {i}:</b> {display_title}</a></li>")
-                body_content.append(f"<h1 id='{slug}'>Capitolo {i}: {display_title}</h1>\n")
+                toc_lines.append(f"<li style='margin-top: 20px; margin-bottom: 8px;'><a href='#{slug}' style='text-decoration: none; color: #111; font-weight: 600; font-size: 1.2em; letter-spacing: 0.5px;'>{display_title}</a></li>")
+                body_content.append(f"<h1 id='{slug}'>{display_title}</h1>\n")
                 
+            toc_lines.append("<ul style='list-style: none; padding-left: 0; margin-top: 0; margin-bottom: 10px;'>")
             for p in chapter.paragraphs:
-                p_text = p.content
+                # Sanitizzazione on-the-fly
+                p_text = self._sanitize_paragraph_headers(project, chapter.title, p.title, p.content)
+                
+                # Trova la prima intestazione ## nel testo
+                import re
+                match = re.search(r'^##\s+(.*)', p_text, re.MULTILINE)
+                if match:
+                    para_title = match.group(1).strip()
+                    para_slug = re.sub(r'[^a-zA-Z0-9]+', '-', para_title.lower()).strip('-')
+                    
+                    # Aggiungi voce all'Indice sotto il capitolo (rientrata)
+                    toc_lines.append(f"<li style='margin-bottom: 8px;'><a href='#{para_slug}' style='text-decoration: none; color: #555; font-size: 1.05em; margin-left: 20px; display: inline-block; transition: color 0.2s ease;'>{para_title}</a></li>")
+                    
+                    # Sostituisci il ## nel testo con l'HTML corrispondente per abilitare l'anchor link
+                    p_text = p_text.replace(match.group(0), f"<h2 id='{para_slug}'>{para_title}</h2>", 1)
+                
                 # Fix image paths
                 def fix_img(m):
                     img_path = m.group(2)
@@ -611,6 +707,7 @@ class Compiler:
                 p_text = re.sub(r'!\[(.*?)\]\((.*?)\)', fix_img, p_text)
                 
                 body_content.append(p_text + "\n")
+            toc_lines.append("</ul>")
                 
         toc_lines.append("</ul></div>")
         toc_html = "\n".join(toc_lines)
@@ -654,29 +751,27 @@ class Compiler:
         full_content.append("")
         
         for chapter in project.chapters:
-            # Remove prefix like '01_' from folder name for clean headings
-            display_title = re.sub(r'^\d+[_ ]+', '', chapter.title)
+            # Get real title from chunks.json or fallback
+            display_title = self._get_chapter_title(project, chapter.title)
             # Add page break in DOCX
             if full_content and full_content[-1] != "":
                  full_content.append("")
             full_content.append("```{=openxml}\n<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n```\n")
             
-            if chapter.title.startswith('00_') or not re.match(r'^\\d+', chapter.title):
+            if chapter.title.startswith('00_') or not re.match(r'^\d+', chapter.title):
                 full_content.append(f"# {display_title} {{-}}\n")
             else:
-                num_match = re.match(r'^(\d+)', chapter.title)
-                if num_match:
-                     chap_num = int(num_match.group(1))
-                     full_content.append(f"# Capitolo {chap_num}: {display_title}\n")
-                else:
-                     full_content.append(f"# {display_title}\n")
+                full_content.append(f"# {display_title}\n")
             for p in chapter.paragraphs:
+                # Sanitizzazione on-the-fly
+                p_text = self._sanitize_paragraph_headers(project, chapter.title, p.title, p.content)
+                
                 # Pre-process content: Normalize image paths
                 # We need them relative to the build dir (where full_project.md is)
                 # Or absolute. Pandoc handles absolute best if we are running from root.
                 # Let's keep them as is and assume we run pandoc? 
                 # Actually, Convert normalized paths (../../assets) to absolute for safety in DOCX
-                content = self._normalize_image_paths(p.content, pattern='../../assets/')
+                content = self._normalize_image_paths(p_text, pattern='../../assets/')
                 # Hack: replace "../../assets" with absolute path to assets
                 assets_abs = (project.path / "assets").as_posix()
                 content = content.replace("../../assets", assets_abs)

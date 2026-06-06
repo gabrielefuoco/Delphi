@@ -4,6 +4,7 @@ import asyncio
 import traceback
 import re
 import time
+import logging
 import httpx
 
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -15,21 +16,25 @@ from typing import List, Optional, Dict
 from notebooklm import NotebookLMClient
 import notebooklm.paths
 
+logger = logging.getLogger("delphi.engine")
+
+# Configure stream handler with timestamp if no handlers exist
+if not logger.handlers:
+    _handler = logging.StreamHandler(sys.stdout)
+    _handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
+    logger.addHandler(_handler)
+    logger.setLevel(logging.INFO)
+
 # Prompt di default per la generazione
 PROMPT_GENERAZIONE = r"""Agisci come un {ruolo} esperto di {materia}.
-Il tuo compito è generare una dispensa di appunti perfetta, completa ed estremamente dettagliata basandoti rigorosamente ed ESCLUSIVAMENTE sui documenti e file che ti ho fornito.
+Il tuo compito è generare una dispensa di appunti accademici perfetta, completa ed estremamente dettagliata basandoti rigorosamente ed ESCLUSIVAMENTE sui documenti e file che ti ho fornito.
 
-Di seguito ti fornirò un blocco specifico dell'indice del corso. Voglio che tu analizzi tutti i documenti caricati, estragga e strutturi ogni singola informazione (definizioni, eccezioni, passaggi logici ed esempi). Non devi fare un riassunto, ma una trasposizione completa ed esaustiva.
+Di seguito ti fornirò un blocco specifico dell'indice. Voglio che tu analizzi tutti i documenti caricati, estragga e strutturi ogni singola informazione chiave, definizioni, riflessioni teoriche ed esempi. Non devi fare un riassunto, ma una trasposizione estesa ed esaustiva.
 
-Segui queste regole tassative per la generazione dell'output:
-**Struttura:** Utilizza un'impaginazione gerarchica e pulita. Ogni risposta generata deve iniziare obbligatoriamente con un `##` per il titolo del paragrafo/sezione corrente, e utilizzare `###` o `####` per i sotto-argomenti.
-**Regola della lingua:** Tutto l'output testuale deve essere in ITALIANO tecnico e accademico, ma mantieni TASSATIVAMENTE in INGLESE i termini ingegneristici, i nomi dei design pattern e i concetti architetturali (es. non tradurre 'Garbage Collection' o 'Event Loop').
-**Esaustività Massima:** Il tuo scopo non è fare un riassunto o una sintesi, ma una trasposizione completa. Se nel testo originale c'è un'analogia, un'osservazione particolare o un'eccezione a una regola, riportala. Mantieni un linguaggio formale e rigoroso, ma chiaro e didattico. 
-**Flessibilità Didattica:** Adatta autonomamente la struttura al contenuto. 
-   - Se il tema è pratico, usa i blocchi a contrasto (Anti-pattern vs Refactoring).
-   - Se il tema è teorico o architetturale, preferisci spiegazioni discorsive, modelli mentali o note di approfondimento.
-   - Se il tema è algoritmico o da colloquio, inserisci le sezioni "LeetCode Tip" o "Interview Insight".
-   - Se riguarda codice, estrai e includi snippet di CODICE REALE dai documenti sorgente (con Type Hints e Docstrings).
+Regole:
+1. Usa linguaggio accademico e rigoroso (ITALIANO).
+2. Sii esaustivo: includi prospettive, definizioni ed eccezioni. Non sintetizzare troppo.
+3. Se necessario, usa elenchi puntati o modelli logici per spiegare.
 
 Ecco il blocco dell'indice che devi sviluppare in appunti in questo prompt:
 {indice_corrente}"""
@@ -143,11 +148,10 @@ def clean_sub_chunk_output(content: str, is_first: bool) -> str:
     return '\n'.join(cleaned_lines).strip()
 
 def _log(msg: str):
-    timestamp = time.strftime("%H:%M:%S")
-    line = f"[{timestamp}] {msg}"
-    print(line, flush=True)
+    """Backward-compatible logging wrapper."""
+    logger.info(msg)
 
-async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruolo: str, custom_prompt: str, disabled_sources: List[str] = None, academic_mode: bool = False) -> Dict[str, str]:
+async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruolo: str, custom_prompt: str, disabled_sources: List[str] = None, academic_mode: bool = False, on_chunk_completed=None) -> Dict[str, str]:
     INITIAL_PARALLEL = 6
     HALVE_THRESHOLD = 3
     memory_files = {}
@@ -190,17 +194,32 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
         chapters = {}
         original_total = len(chunks)
         for idx, chunk in enumerate(chunks, start=1):
-            sections = split_chapter_by_h2(chunk)
+            if isinstance(chunk, dict):
+                sections = []
+                for p_idx, p in enumerate(chunk.get("paragraphs", [])):
+                    if isinstance(p, dict):
+                        md = f"## {p.get('title', 'Paragrafo')}\n"
+                        if p.get("context"):
+                            md += f"[Contesto di Posizionamento: {p['context']}]\n"
+                        for pt in p.get("points", []):
+                            md += f"- {pt}\n"
+                        sections.append((p.get("id", f"p{p_idx}"), md))
+                    else:
+                        sections.append((f"p{p_idx}", str(p)))
+            else:
+                raw_sections = split_chapter_by_h2(chunk)
+                sections = [(f"p{i}", sec) for i, sec in enumerate(raw_sections)]
+                
             chapter_tasks = []
             sub_idx = 0
-            for sec in sections:
+            for para_id, sec in sections:
                 if len(sec) > max_chunk_chars:
                     sub_splits = split_markdown_character_fallback(sec, max_chunk_chars)
                     for ss in sub_splits:
-                        chapter_tasks.append((sub_idx, ss))
+                        chapter_tasks.append((sub_idx, para_id, ss))
                         sub_idx += 1
                 else:
-                    chapter_tasks.append((sub_idx, sec))
+                    chapter_tasks.append((sub_idx, para_id, sec))
                     sub_idx += 1
             chapters[idx] = chapter_tasks
         
@@ -211,6 +230,8 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
             _log(f"📋 Recupero fonti per il notebook {notebook_id[:8]}...")
             sources = await client.sources.list(notebook_id)
             source_ids = [s.id for s in sources if s.id not in disabled_sources]
+            if not source_ids:
+                raise ValueError("Nessuna fonte attiva trovata. Assicurati di aver caricato e attivato le fonti.")
             _log(f"📎 {len(source_ids)} fonti attive trovate ({len(sources)-len(source_ids)} disattivate). Avvio generazione...")
             print("=" * 60, flush=True)
             
@@ -224,7 +245,7 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
                 current_parallel = max(1, INITIAL_PARALLEL >> halvings)
                 _log(f"📖 Preparazione Capitolo {orig_idx}/{original_total} — {len(chapter_tasks)} paragrafi...")
                 
-            async def process_paragraph(sub_idx, chunk_text, chap_idx, para_total):
+            async def process_paragraph(sub_idx, para_id, chunk_text, chap_idx, para_total):
                 nonlocal completed_count, errors_total, active_calls
                 
                 async with cv:
@@ -270,7 +291,7 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
                             
                             completed_count += 1
                             _log(f"  ✅ {call_label} OK in {elapsed:.1f}s [{completed_count}/{total_calls}]")
-                            return (chap_idx, sub_idx, cleaned)
+                            return (chap_idx, sub_idx, para_id, cleaned)
                         
                         except (httpx.RemoteProtocolError, httpx.TransportError, httpx.ConnectError, httpx.NetworkError) as e:
                             wait = 20 * attempt
@@ -292,32 +313,41 @@ async def generation_task(notebook_id: str, chunks: List[str], materia: str, ruo
                             _log(f"🔻 Concorrenza ridotta a {new_parallel} (totale errori: {errors_total})")
                     
                     _log(f"  ❌ {call_label} FALLITO dopo 3 tentativi → placeholder inserito")
-                    return (chap_idx, sub_idx, f"\n\n---\n\n> ⚠️ **SEZIONE NON GENERATA** — Riprovare la generazione.\n\n---\n\n")
+                    return (chap_idx, sub_idx, para_id, f"\n\n---\n\n> ⚠️ **SEZIONE NON GENERATA** — Riprovare la generazione.\n\n---\n\n")
                 finally:
                     async with cv:
                         active_calls -= 1
                         cv.notify_all()
             
-            all_tasks = []
+            all_chapter_tasks = []
             for orig_idx, chapter_tasks in chapters.items():
                 para_total = len(chapter_tasks)
-                for sub_idx, text in chapter_tasks:
-                    all_tasks.append(process_paragraph(sub_idx, text, orig_idx, para_total))
+                tasks_for_chap = []
+                for sub_idx, para_id, text in chapter_tasks:
+                    tasks_for_chap.append(process_paragraph(sub_idx, para_id, text, orig_idx, para_total))
+                all_chapter_tasks.append((orig_idx, tasks_for_chap))
             
             _log("🚀 Avvio elaborazione asincrona globale su tutti i capitoli...")
-            flat_results = await asyncio.gather(*all_tasks)
             
-            # Ricostruiamo i capitoli raggruppandoli
-            grouped = {}
-            for chap_idx, sub_idx, test_content in flat_results:
-                if chap_idx not in grouped:
-                    grouped[chap_idx] = []
-                grouped[chap_idx].append((sub_idx, test_content))
+            async def gather_chapter(chap_idx, tasks):
+                res = await asyncio.gather(*tasks)
+                res = sorted(res, key=lambda x: x[1])
+                full_content = "\n\n".join(t for _, _, _, t in res)
                 
-            for chap_idx, items in grouped.items():
-                items.sort(key=lambda x: x[0])
-                memory_files[f"appunti_p{chap_idx}.md"] = "\n\n".join(t for _, t in items)
-                _log(f"📗 Capitolo {chap_idx}/{original_total} salvato.")
+                if on_chunk_completed is not None:
+                    if asyncio.iscoroutinefunction(on_chunk_completed):
+                        await on_chunk_completed(chap_idx, res)
+                    else:
+                        on_chunk_completed(chap_idx, res)
+                        
+                _log(f"📗 Capitolo {chap_idx}/{original_total} completato e processato.")
+                return chap_idx, full_content
+                
+            flat_results = await asyncio.gather(*(gather_chapter(idx, tsks) for idx, tsks in all_chapter_tasks))
+            
+            # Manteniamo comunque compatibilità con chi si aspetta memory_files ritornati alla fine
+            for chap_idx, content in flat_results:
+                memory_files[f"appunti_p{chap_idx}.md"] = content
             
             total_elapsed = time.monotonic() - gen_start
             print("=" * 60, flush=True)

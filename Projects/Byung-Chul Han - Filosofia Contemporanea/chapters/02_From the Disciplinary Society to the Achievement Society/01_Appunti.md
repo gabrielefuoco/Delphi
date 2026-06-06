@@ -1,0 +1,39 @@
+# From the Disciplinary Society to the Achievement Society
+
+**Introduzione: Il Superamento del Paradigma Foucaultiano**
+Per comprendere a fondo l'essenza della filosofia contemporanea e le dinamiche del potere attuale, è necessario riconoscere l'obsolescenza del modello analitico proposto da Michel Foucault. La società disciplinare descritta da Foucault, caratterizzata da ambienti di internamento come ospedali, manicomi, prigioni, caserme e fabbriche, non corrisponde più alla realtà del XXI secolo. Al suo posto è subentrata una costellazione radicalmente diversa: la **società della prestazione** (*Leistungsgesellschaft*). I nuovi luoghi emblematici di questa epoca non sono più i muri di reclusione, ma i fitness center, i grattacieli di uffici, le banche, gli aeroporti, i centri commerciali e i laboratori di genetica. Conseguentemente, i cittadini non si definiscono più come "soggetti d'obbedienza", bensì come "soggetti di prestazione", veri e propri imprenditori di se stessi. Il concetto foucaultiano di "società del controllo", così come la sua analisi del potere, si rivelano inadeguati per descrivere queste profonde trasformazioni psichiche e topologiche, in quanto implicano ancora una dose eccessiva di negatività.
+
+**Topologia del Potere: Dalla Talpa al Serpente**
+Per illustrare questo passaggio epocale, è utile ricorrere al modello mentale animale proposto originariamente da Gilles Deleuze, che delinea il passaggio dagli ambienti d'internamento a quelli di controllo.
+
+- **La Talpa (Società Disciplinare):** È l'animale che si muove in spazi pre-installati, chiusi e restrittivi. La talpa rappresenta il lavoratore tradizionale, il "soggetto sottomesso" le cui possibilità di movimento (e quindi di produttività) sono limitate da confini fisici e normativi rigidi.
+- **Il Serpente (Società della Prestazione/Neoliberale):** Al contrario della talpa, il serpente non si muove in spazi chiusi, ma dischiude lo spazio attraverso il suo stesso movimento. Il serpente rappresenta l'imprenditore, il "progetto".
+
+Questo slittamento non rappresenta una rottura totale, ma un'acutizzazione del capitalismo stesso: poiché la costrizione spaziale della talpa imponeva un limite fisiologico alla produttività, il sistema capitalistico è mutato nel modello-serpente per abbattere tali limiti e realizzare una produzione incommensurabilmente maggiore.
+
+**La Dialettica Modale: Negatività del "Dovere" vs. Positività del "Poter-Fare"**
+Il nucleo teorico della transizione dalla società disciplinare a quella della prestazione risiede in un radicale mutamento del verbo modale dominante nell'inconscio sociale.
+
+- **Il paradigma della negatività:** La società disciplinare è determinata dalla negatività del divieto. I verbi modali dominanti sono il "non-potere" (*Nicht-Dürfen*) e il "dovere" (*Sollen*). Il dovere, per sua natura, è intaccato dalla negatività dell'obbligo e incontra un limite strutturale nello sviluppo delle forze produttive.
+- **Il paradigma della positività:** La società della prestazione elimina progressivamente la negatività attraverso la deregolamentazione. Il nuovo verbo modale è il "poter-fare" (*Können*) illimitato. L'espressione collettiva "Yes we can" incarna perfettamente questo carattere di pura positività. Al posto di divieti e leggi, subentrano concetti come progetto, iniziativa e motivazione.
+
+Questo cambiamento è dettato da una logica strettamente economica: l'inconscio sociale è guidato dallo sforzo di massimizzare la produzione. La tecnica disciplinare, fondata sulla repressione, finisce per inibire un ulteriore incremento della produttività; la positività del "poter-fare", invece, si rivela infinitamente più efficace. Il soggetto di prestazione è più veloce e produttivo del soggetto di obbedienza, sebbene conservi la disciplina interiorizzata dallo stadio precedente.
+
+**La Libertà Costrittiva e il Paradosso dell'Autosfruttamento**
+Nella società della prestazione assistiamo a una drammatica e fatale crisi della libertà. In linea teorica, l'essere liberi significa essere privi di costrizioni; tuttavia, oggi la libertà stessa genera costrizioni. Il soggetto odierno non si percepisce più come "soggetto" (il cui significato etimologico è "essere-sottomesso"), ma come un "progetto" libero che si reinventa costantemente. 
+
+Questo passaggio si rivela essere una forma di soggettivazione ancora più insidiosa. Il soggetto di prestazione è, dialetticamente, un **servo assoluto**: egli sfrutta se stesso senza bisogno di un padrone. Si abbandona a una "libertà costrittiva" o a una "libera costrizione" volta a massimizzare le proprie performance. Mancando un'istanza esterna di dominio, libertà e costrizione finiscono per coincidere perfettamente. L'autosfruttamento è immensamente più efficiente dello sfruttamento perpetrato da terzi, proprio perché si ammanta del sentimento illusorio della libertà. In questo tragico campo di lavoro interiore, il soggetto è contemporaneamente vittima e carnefice, sorvegliante e prigioniero.
+
+Il potere che opera in questa società è un **potere intelligente e permissivo**, che non si impone tramite la forza bruta, ma attraverso la seduzione e il piacere. Invece di reprimere la volontà, la guida e la modella per i propri fini, invitando costantemente l'individuo a comunicare, ottimizzarsi e condividere. 
+
+**Le Patologie del Sé: Depressione e Burnout**
+Se la società disciplinare produceva, come suoi scarti, pazzi e criminali, la società della prestazione genera soggetti depressi e frustrati. Patologie neuronali come la depressione, il disturbo borderline o il burnout sono le manifestazioni cliniche di questa libertà paradossale.
+
+È fondamentale correggere l'interpretazione del sociologo Alain Ehrenberg, il quale colloca erroneamente l'origine della depressione nell'eccesso di iniziativa personale e nell'imperativo di "diventare se stessi". Ehrenberg ignora la violenza sistemica: non è l'imperativo di appartenere a se stessi a causare il collasso, ma la spietata pressione della prestazione. La depressione non esprime un "sé esaurito", bensì un'"anima esaurita" dal peso dell'obbligo prestazionale. 
+
+La depressione erompe nel momento esatto in cui il soggetto di prestazione "non è più in grado di poter-fare". Il drammatico lamento del depresso ("niente è possibile") acquista senso solo in una società in cui vige il dogma che "niente è impossibile". Questa impotenza sfocia in una devastante auto-accusa e auto-aggressione: l'individuo depresso è il grande invalido di una guerra intestina condotta contro se stesso.
+
+**Oltre la Biopolitica: L'Avvento della Psicopolitica**
+Il regime neoliberale della prestazione sancisce anche la fine dell'utilità del concetto di **biopolitica** teorizzato da Foucault. La biopolitica, sviluppatasi dal XVII secolo per amministrare i corpi e disciplinarli per la produzione industriale (statistiche demografiche, controllo delle nascite, salute pubblica), si occupava del "biologico, somatico, corporale". 
+
+Il capitalismo odierno, fondato su forme di produzione immateriali e incorporee, non ha più il corpo come forza produttiva primaria. Il corpo diventa tutt'al più un oggetto di ottimizzazione estetica (fitness, sexyness), mentre la vera risorsa economica da sfruttare è la **psiche**. Per incrementare la produttività, il sistema non reprime i corpi, ma ottimizza i processi mentali. Entriamo così nell'era della **psicopolitica**, una tecnica di dominio che esplora, mappa e sfrutta l'anima e l'inconscio (spesso tramite i Big Data e il management emotivo), trasformando la persona intera, i suoi desideri e i suoi affetti, in materia prima per la produzione. In questo regime, il concetto di "guarigione" (*healing*) coincide con un'ottimizzazione infinita che, annientando l'anima umana sotto il diktat dell'efficienza, si risolve in un vero e proprio atto di uccisione.

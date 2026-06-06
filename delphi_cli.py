@@ -17,43 +17,42 @@ app = typer.Typer(
     no_args_is_help=True
 )
 
-STATE_FILE = "delphi_state.json"
+STATE_FILE = "delphi_state.json"  # Legacy, kept for migration
 RESPONSES_DIR = "./delphi_responses"
+PROJECTS_DIR = Path.cwd() / "Projects"
 
-def _load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r") as f:
-            return json.load(f)
-    return {"notebooks": []}
+def _get_project_dir(project_name: str) -> Path:
+    return PROJECTS_DIR / project_name
 
-def _save_state(state):
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
+def _load_project_config(project_name: str) -> dict:
+    """Carica la configurazione dal delphi.json del progetto specifico."""
+    config_path = _get_project_dir(project_name) / "delphi.json"
+    if config_path.exists():
+        return json.loads(config_path.read_text(encoding="utf-8"))
+    return {}
 
-@app.command()
-def leggero(
-    query: str = typer.Argument(..., help="Cosa cercare nella documentazione"),
-    libs: str = typer.Option(..., help="Librerie target separate da virgola (es. fastapi,tortoise-orm)"),
-):
-    """
-    FLUSSO LEGGERO: Usa Context7 per estrarre direttamente frammenti di codice o documentazione.
-    """
-    typer.echo(f"🔍 Avvio Flusso Leggero per librerie: {libs}...")
-    typer.echo(f"❓ Query: {query}")
-    # TODO: Integrazione Context7
-    pass
-
-def _get_notebook(project_name: str) -> dict:
-    state = _load_state()
-    target_title = f"[DELPHI-TMP] {project_name}"
-    for nb in state.get("notebooks", []):
-        if nb.get("title") == target_title:
-            return nb
-    return None
+def _save_project_config(project_name: str, config: dict):
+    """Salva la configurazione nel delphi.json del progetto specifico."""
+    config_path = _get_project_dir(project_name) / "delphi.json"
+    config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def _get_notebook_id(project_name: str) -> str:
-    nb = _get_notebook(project_name)
-    return nb.get("id") if nb else None
+    config = _load_project_config(project_name)
+    return config.get("notebook", {}).get("id")
+
+def _get_notebook(project_name: str) -> dict:
+    config = _load_project_config(project_name)
+    return config.get("notebook")
+
+def _set_notebook(project_name: str, notebook_id: str, title: str):
+    """Registra un notebook nel delphi.json del progetto."""
+    config = _load_project_config(project_name)
+    config["notebook"] = {
+        "id": notebook_id,
+        "title": title,
+        "disabled_sources": config.get("notebook", {}).get("disabled_sources", [])
+    }
+    _save_project_config(project_name, config)
 
 @app.command()
 def setup(
@@ -90,14 +89,7 @@ def setup(
                 notebook_id = notebook.id
                 _log(f"✅ Notebook creato con ID: {notebook_id}")
                 
-                state = _load_state()
-                state["notebooks"].append({
-                    "id": notebook_id,
-                    "title": nb_title,
-                    "ownership": "created_by_delphi",
-                    "libs": libs.split(",") if libs else []
-                })
-                _save_state(state)
+                _set_notebook(project_name, notebook_id, nb_title)
                 
             if files:
                 for fpath in files.split(","):
@@ -150,7 +142,7 @@ def sources(project_name: str = typer.Argument(..., help="Nome del progetto")):
             for i, s in enumerate(sources_list, 1):
                 title = getattr(s, 'title', 'Senza Titolo')
                 nb_data = _get_notebook(project_name)
-                disabled = nb_data.get("disabled_sources", [])
+                disabled = nb_data.get("disabled_sources", []) if nb_data else []
                 status = "🔴 DISATTIVATA" if s.id in disabled else "🟢 ATTIVA"
                 typer.echo(f"[{i}] {status} | ID: {s.id} | Titolo: {title[:80]}")
     asyncio.run(run_sources())
@@ -174,19 +166,18 @@ def curate(
     nb_id = nb.get("id")
     
     if disable or enable:
-        state = _load_state()
-        for notebook in state.get("notebooks", []):
-            if notebook.get("id") == nb_id:
-                disabled = notebook.get("disabled_sources", [])
-                if disable and disable not in disabled:
-                    disabled.append(disable)
-                    typer.echo(f"🔴 Fonte {disable} DISATTIVATA.")
-                if enable and enable in disabled:
-                    disabled.remove(enable)
-                    typer.echo(f"🟢 Fonte {enable} RIATTIVATA.")
-                notebook["disabled_sources"] = disabled
-                break
-        _save_state(state)
+        config = _load_project_config(project_name)
+        nb_data = config.get("notebook", {})
+        disabled = nb_data.get("disabled_sources", [])
+        if disable and disable not in disabled:
+            disabled.append(disable)
+            typer.echo(f"🔴 Fonte {disable} DISATTIVATA.")
+        if enable and enable in disabled:
+            disabled.remove(enable)
+            typer.echo(f"🟢 Fonte {enable} RIATTIVATA.")
+        nb_data["disabled_sources"] = disabled
+        config["notebook"] = nb_data
+        _save_project_config(project_name, config)
         return
 
     import asyncio
@@ -226,7 +217,8 @@ def generate(
     materia: str = typer.Option("Generale", help="La materia o l'argomento (es. Ingegneria del Software)"),
     ruolo: str = typer.Option("Tutor Accademico", help="Il ruolo che l'LLM deve assumere"),
     prompt: str = typer.Option(None, help="Prompt personalizzato di estrazione (se non fornito usa il default). Usa {indice_corrente} per il chunk."),
-    chunks_file: str = typer.Option(None, help="File TXT o MD con gli argomenti (indice) separati da riga vuota o capitoli."),
+    chunks_file: str = typer.Option(None, help="File TXT o JSON con gli argomenti (indice)."),
+    chunks_ids: str = typer.Option(None, help="ID dei chunk da generare separati da virgola (se json)"),
     academic: bool = typer.Option(False, "--academic", help="Preserva e converte le citazioni generate da NotebookLM in formato Pandoc")
 ):
     """
@@ -234,74 +226,41 @@ def generate(
     """
     nb = _get_notebook(project_name)
     if not nb:
-        typer.echo(f"❌ Progetto '{project_name}' non trovato.")
+        typer.echo(f"❌ Nessun notebook associato al progetto '{project_name}'. Lancia prima il setup.")
         raise typer.Exit(1)
         
     nb_id = nb.get("id")
     disabled_sources = nb.get("disabled_sources", [])
     typer.echo(f"🏗️ Avvio Generazione per il progetto: {project_name}...")
     
-    chunks_data = []
-    if chunks_file and os.path.exists(chunks_file):
-        with open(chunks_file, "r", encoding="utf-8") as f:
-            content = f.read()
-            chunks_data = [c.strip() for c in content.split("\n\n") if c.strip()]
-    else:
+    from core.generation_manager import load_chunks, prepare_chapter_directories, make_disk_callback
+    
+    chunks_data = load_chunks(chunks_file, chunks_ids)
+    if not chunks_file or not os.path.exists(chunks_file or ""):
         typer.echo("⚠️ Nessun file chunks fornito. Verrà generato un singolo chunk base.")
-        chunks_data = ["Spiega tutti gli argomenti principali trovati nei documenti."]
 
     import asyncio
     from core.notebooklm_engine import generation_task
     
     async def run_generate():
-        # Avvia la generazione asincrona super-parallela
-        memory_files = await generation_task(nb_id, chunks_data, materia, ruolo, prompt, disabled_sources)
-        
-        from pathlib import Path
-        project_dir = Path.cwd() / project_name
+        project_dir = Path.cwd() / "Projects" / project_name
         if not project_dir.exists() or not (project_dir / "delphi.json").exists():
             typer.echo(f"❌ Struttura Delphi non trovata per '{project_name}'. Esegui 'delphi init' prima di generare.")
             raise typer.Exit(1)
             
         from core.academic.lib.project import ProjectManager
-        import shutil
-        import re as re_mod
-        pm = ProjectManager(Path.cwd())
+        pm = ProjectManager(Path.cwd() / "Projects")
         
-        typer.echo(f"📥 Progetto strutturato rilevato. Aggiornamento cartella {project_dir}...")
+        typer.echo(f"📥 Progetto strutturato rilevato. Inizializzazione salvataggio progressivo...")
         
-        # Rimuovi vecchi capitoli generati automaticamente (che iniziano con cifre e underscore)
-        for d in project_dir.iterdir():
-            if d.is_dir() and re_mod.match(r'^\d+_', d.name):
-                shutil.rmtree(d, ignore_errors=True)
-                
-        for i, (fname, fcontent) in enumerate(memory_files.items(), 1):
-            # Extract real title
-            match = re_mod.search(r'^#\s*(?:Capitolo:?\s*)?(.*)', fcontent, re_mod.MULTILINE)
-            if match:
-                real_title = match.group(1).strip()
-                fcontent_clean = fcontent[match.start():]
-                # Remove the H1
-                fcontent_clean = re_mod.sub(r'^#\s+.*?\n', '', fcontent_clean, count=1).strip()
-            else:
-                real_title = f"Capitolo {i}"
-                fcontent_clean = fcontent
-                
-            safe_title = re_mod.sub(r'[\\/*?:"<>|]', "", real_title)
-            chap = pm.add_chapter(project_dir, safe_title)
-                
-            if academic:
-                def replace_cit(m):
-                    nums = m.group(1).split(',')
-                    cits = [f"@{n.strip()}" for n in nums]
-                    return "[" + "; ".join(cits) + "]"
-                fcontent_clean = re_mod.sub(r'\[(\d+(?:\s*,\s*\d+)*)\]', replace_cit, fcontent_clean)
-                
-            # Clean manual numbering
-            fcontent_clean = re_mod.sub(r'^(#{2,})\s+\d+(?:\.\d+)*\.?\s+', r'\1 ', fcontent_clean, flags=re_mod.MULTILINE)
-            
-            pm.add_paragraph(chap, "Appunti", fcontent_clean, include_header=False)
-            typer.echo(f"💾 Salvato Capitolo {i} in {chap.name}")
+        chap_map, _, _ = prepare_chapter_directories(project_dir, chunks_data, chunks_ids, pm)
+        
+        callback = make_disk_callback(
+            chap_map,
+            on_save=lambda chap, fname: typer.echo(f"💾 Salvato Paragrafo in {chap}/{fname}")
+        )
+
+        await generation_task(nb_id, chunks_data, materia, ruolo, prompt, disabled_sources, academic, on_chunk_completed=callback)
 
     asyncio.run(run_generate())
 
@@ -371,29 +330,98 @@ def export(
         raise typer.Exit(1)
 
 @app.command()
-def clear_all():
+def clear_all(
+    project_name: str = typer.Argument(None, help="Nome del progetto da pulire (opzionale, se omesso pulisce tutti)")
+):
     """
-    GARBAGE COLLECTION: Rimuove i NotebookLM creati da Delphi e pulisce lo stato locale.
+    GARBAGE COLLECTION: Rimuove i notebook NotebookLM associati ai progetti e pulisce lo stato.
     """
-    state = _load_state()
-    notebooks_da_eliminare = [nb for nb in state.get("notebooks", []) if nb.get("ownership") == "created_by_delphi" and nb.get("title", "").startswith("[DELPHI-TMP]")]
+    import asyncio
+    from notebooklm import NotebookLMClient
+    import notebooklm.paths
     
-    if not notebooks_da_eliminare:
-        typer.echo("🧹 Nessun notebook temporaneo da eliminare.")
-        return
-
-    for nb in notebooks_da_eliminare:
-        typer.echo(f"🗑️ Eliminazione da NotebookLM: {nb['title']} (ID: {nb['id']})")
-        # TODO: Aggiungere logica di delete notebooklm-py
-    
-    _save_state({"notebooks": []})
-    typer.echo("✅ Pulizia completata.")
+    if project_name:
+        # Pulisci un singolo progetto
+        nb = _get_notebook(project_name)
+        if not nb:
+            typer.echo(f"⚠️ Nessun notebook associato al progetto '{project_name}'.")
+            return
+        
+        async def delete_single():
+            official_path = str(notebooklm.paths.get_storage_path())
+            client = await NotebookLMClient.from_storage(official_path, timeout=600)
+            async with client:
+                try:
+                    typer.echo(f"🗑️ Eliminazione notebook: {nb['title']} (ID: {nb['id']})")
+                    await client.notebooks.delete(nb['id'])
+                    typer.echo("✅ Notebook eliminato da NotebookLM.")
+                except Exception as e:
+                    typer.echo(f"⚠️ Errore eliminazione remota: {e}")
+            # Rimuovi dal config locale
+            config = _load_project_config(project_name)
+            config.pop("notebook", None)
+            _save_project_config(project_name, config)
+            typer.echo("✅ Stato locale ripulito.")
+        
+        asyncio.run(delete_single())
+    else:
+        # Pulisci tutti i progetti
+        projects_dir = Path.cwd() / "Projects"
+        if not projects_dir.exists():
+            typer.echo("📭 Nessun progetto trovato.")
+            return
+        
+        async def delete_all():
+            official_path = str(notebooklm.paths.get_storage_path())
+            client = await NotebookLMClient.from_storage(official_path, timeout=600)
+            async with client:
+                for pdir in projects_dir.iterdir():
+                    if pdir.is_dir() and (pdir / "delphi.json").exists():
+                        config = json.loads((pdir / "delphi.json").read_text(encoding="utf-8"))
+                        nb = config.get("notebook")
+                        if nb and nb.get("id"):
+                            try:
+                                typer.echo(f"🗑️ Eliminazione: {nb.get('title', pdir.name)} (ID: {nb['id']})")
+                                await client.notebooks.delete(nb['id'])
+                            except Exception as e:
+                                typer.echo(f"  ⚠️ Errore: {e}")
+                            config.pop("notebook", None)
+                            (pdir / "delphi.json").write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
+            typer.echo("✅ Pulizia completata.")
+        
+        asyncio.run(delete_all())
 
 @app.command()
-def status():
-    """Mostra lo stato attuale del database locale (Notebook attivi)."""
-    state = _load_state()
-    typer.echo(json.dumps(state, indent=2))
+def status(
+    project_name: str = typer.Argument(None, help="Nome del progetto (opzionale)")
+):
+    """Mostra lo stato del notebook associato a un progetto (o di tutti)."""
+    if project_name:
+        config = _load_project_config(project_name)
+        nb = config.get("notebook")
+        if nb:
+            typer.echo(f"📓 Progetto: {project_name}")
+            typer.echo(f"   Notebook ID: {nb.get('id', 'N/A')}")
+            typer.echo(f"   Titolo: {nb.get('title', 'N/A')}")
+            disabled = nb.get('disabled_sources', [])
+            typer.echo(f"   Fonti disattivate: {len(disabled)}")
+        else:
+            typer.echo(f"📭 Nessun notebook associato a '{project_name}'.")
+    else:
+        projects_dir = Path.cwd() / "Projects"
+        if not projects_dir.exists():
+            typer.echo("📭 Nessun progetto trovato.")
+            return
+        found = False
+        for pdir in sorted(projects_dir.iterdir()):
+            if pdir.is_dir() and (pdir / "delphi.json").exists():
+                config = json.loads((pdir / "delphi.json").read_text(encoding="utf-8"))
+                nb = config.get("notebook")
+                if nb:
+                    found = True
+                    typer.echo(f"📓 {pdir.name} → {nb.get('id', 'N/A')[:12]}... ({nb.get('title', '')})")
+        if not found:
+            typer.echo("📭 Nessun progetto ha un notebook associato.")
 
 @app.command()
 def init(
@@ -408,7 +436,26 @@ def init(
     try:
         pm = ProjectManager(Path.cwd() / "Projects")
         project_dir = pm.init_project(project_name)
+        
+        chunks_file = project_dir / "chunks.json"
+        if not chunks_file.exists():
+            default_chunks = [
+                {
+                    "id": "01_Introduzione",
+                    "title": "Introduzione",
+                    "paragraphs": [
+                        {
+                            "id": "1",
+                            "title": "Panoramica Generale",
+                            "content": "Inserisci qui il prompt che l'agente dovrà usare per estrarre questo paragrafo dai documenti."
+                        }
+                    ]
+                }
+            ]
+            chunks_file.write_text(json.dumps(default_chunks, indent=2, ensure_ascii=False), encoding="utf-8")
+            
         typer.echo(f"✅ Progetto accademico '{project_name}' inizializzato in: {project_dir}")
+        typer.echo(f"📄 Creato template chunks.json in: {chunks_file}")
     except Exception as e:
         typer.echo(f"❌ Errore durante l'inizializzazione: {e}")
         raise typer.Exit(1)
@@ -450,6 +497,51 @@ def lint(
     except Exception as e:
         typer.echo(f"❌ Errore durante il linting: {e}")
         raise typer.Exit(1)
+
+@app.command("create-launcher")
+def create_launcher(
+    project_name: str = typer.Argument(..., help="Nome del progetto"),
+    materia: str = typer.Option("Generale", help="La materia o l'argomento (es. Ingegneria del Software)"),
+    ruolo: str = typer.Option("Tutor Accademico", help="Il ruolo che l'LLM deve assumere"),
+    prompt: str = typer.Option(None, help="Prompt personalizzato di estrazione (se non fornito usa il default). Usa {indice_corrente} per il chunk."),
+    chunks_file: str = typer.Option(None, help="File TXT o JSON con gli argomenti (indice)."),
+    chunks_ids: str = typer.Option(None, help="ID dei chunk da generare separati da virgola (se json)"),
+    academic: bool = typer.Option(False, "--academic", help="Preserva e converte le citazioni generate da NotebookLM in formato Pandoc")
+):
+    """
+    MODULO GENERAZIONE OFF-GRID: Crea uno script .ps1 o .bat per avviare la generazione asincrona in locale, senza bloccare l'agente.
+    """
+    from pathlib import Path
+    import sys
+
+    cmd = [f'py delphi_cli.py generate "{project_name}"']
+    cmd.append(f'--materia "{materia}"')
+    cmd.append(f'--ruolo "{ruolo}"')
+    
+    if prompt:
+        cmd.append(f'--prompt "{prompt}"')
+    if chunks_file:
+        cmd.append(f'--chunks-file "{chunks_file}"')
+    if chunks_ids:
+        cmd.append(f'--chunks-ids "{chunks_ids}"')
+    if academic:
+        cmd.append('--academic')
+
+    final_command = " ".join(cmd)
+    
+    # Crea lo script PowerShell
+    ps1_content = f"""# Script generato automaticamente da Delphi
+echo "Avvio generazione per: {project_name}..."
+{final_command}
+echo "Generazione terminata. Puoi tornare all'agente per il controllo."
+pause
+"""
+    script_name = f"build_{project_name.replace(' ', '_')}.ps1"
+    script_path = Path.cwd() / script_name
+    script_path.write_text(ps1_content, encoding="utf-8")
+    
+    typer.echo(f"✅ Script di avvio creato in: {script_path}")
+    typer.echo("Esegui questo script dal tuo terminale per lanciare la generazione senza bloccare l'agente.")
 
 if __name__ == "__main__":
     app()
