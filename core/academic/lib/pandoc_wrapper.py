@@ -94,3 +94,37 @@ class PandocWrapper:
         process = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
         if process.returncode != 0:
              raise RuntimeError(f"Pandoc DOCX export failed: {process.stderr}")
+
+    def convert_markdown_to_epub(self, input_path: Path, output_path: Path, 
+                                 cover_image: Path = None,
+                                 metadata: dict = None,
+                                 css: Path = None,
+                                 toc: bool = True):
+        """
+        Converts a Markdown file to EPUB.
+        """
+        cmd = [
+            str(self.exe),
+            str(input_path),
+            "--from", "markdown+tex_math_dollars+citations",
+            "--to", "epub",
+            "--output", str(output_path)
+        ]
+        
+        if cover_image and cover_image.exists():
+            cmd.extend(["--epub-cover-image", str(cover_image)])
+            
+        if metadata:
+            for k, v in metadata.items():
+                cmd.extend(["--metadata", f"{k}={v}"])
+                
+        if css and css.exists():
+            cmd.extend(["--css", str(css)])
+            
+        if toc:
+            cmd.append("--toc")
+
+        self._check_exists()
+        process = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+        if process.returncode != 0:
+             raise RuntimeError(f"Pandoc EPUB export failed: {process.stderr}")

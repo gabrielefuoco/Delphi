@@ -297,8 +297,8 @@ def fetch(
 
 @app.command()
 def export(
-    project_name: str = typer.Argument(..., help="Nome del progetto da esportare in PDF/DOCX"),
-    format: str = typer.Option("pdf", "--format", "-f", help="Formato: 'pdf' o 'docx'"),
+    project_name: str = typer.Argument(..., help="Nome del progetto da esportare in PDF/DOCX/EPUB"),
+    format: str = typer.Option("pdf", "--format", "-f", help="Formato: 'pdf', 'docx' o 'epub'"),
     engine: str = typer.Option("typst", "--engine", "-e", help="Motore di rendering per PDF: 'typst' o 'web'")
 ):
     """
@@ -324,6 +324,8 @@ def export(
     try:
         if format == "docx":
             pm.compiler.compile_docx(project, output_file)
+        elif format == "epub":
+            pm.compiler.compile_epub(project, output_file)
         else:
             if engine == "web":
                 pm.compiler.compile_web(project, output_file)

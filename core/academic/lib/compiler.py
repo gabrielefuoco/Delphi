@@ -955,3 +955,142 @@ class Compiler:
         import shutil
         shutil.rmtree(build_dir, ignore_errors=True)
         return output_path
+
+    def compile_epub(self, project: Project, output_path: Path = None):
+        """
+        Exports the project to EPUB leveraging the HTML-based structure.
+        """
+        logger.info(f"Starting EPUB export for: {project.name}")
+        
+        if not output_path:
+            output_dir = project.path / "output"
+            output_dir.mkdir(exist_ok=True)
+            output_path = output_dir / f"{project.name}.epub"
+            
+        build_dir = project.path / ".build"
+        build_dir.mkdir(exist_ok=True)
+        
+        full_md_path = build_dir / "epub_full.md"
+        
+        # Carica metadata per la copertina
+        import json
+        config_path = project.path / "delphi.json"
+        config = {}
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                
+        meta = config.get('metadata', {})
+        title = meta.get('title', project.name)
+        subtitle = meta.get('subtitle', '')
+        author = meta.get('author', '')
+        date = meta.get('date', '')
+        
+        cover_theme = meta.get('cover_theme', 'theme-academic')
+        cover_accent = meta.get('cover_accent_color', '')
+        cover_font = meta.get('cover_font', '')
+        
+        style_attrs = []
+        if cover_accent: style_attrs.append(f"--accent-color: {cover_accent}")
+        if cover_font: style_attrs.append(f"--main-font: {cover_font}")
+        style_str = f' style="{"; ".join(style_attrs)}"' if style_attrs else ''
+        
+        if not subtitle: subtitle = "Documentazione generata automaticamente tramite Delphi Engine."
+        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n'
+        if cover_theme == 'theme-ide':
+            cover_html = generate_ide_cover_html(title, subtitle, author, date, cover_accent)
+        else:
+            cover_html = f"""<div class="cover-page {cover_theme}"{style_str}>
+    <div class="cover-content">
+        <div class="cover-title">{title}</div>
+{subtitle_div}        <div class="cover-author">{author}</div>
+        <div class="cover-date">{date}</div>
+    </div>
+</div>
+"""
+
+        # Salva la copertina HTML temporanea e genera l'immagine
+        cover_html_path = build_dir / "cover_temp.html"
+        cover_image_path = build_dir / "cover.png"
+        cover_html_path.write_text(cover_html, encoding="utf-8")
+        
+        base_export = Path(__file__).resolve().parent.parent.parent / "export_module"
+        build_cover_image_script = base_export / "build_cover_image.js"
+        
+        import subprocess
+        try:
+            logger.info("Generazione immagine di copertina per EPUB...")
+            subprocess.run(
+                ["node", str(build_cover_image_script), str(cover_html_path), str(cover_image_path)],
+                check=True, cwd=str(project.path)
+            )
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Impossibile generare immagine di copertina. Errore: {e}")
+            cover_image_path = None
+
+        # Concatenate content
+        full_content = []
+        
+        for chapter in project.chapters:
+            # Get real title from chunks.json or fallback
+            display_title = self._get_chapter_title(project, chapter.title)
+            
+            if chapter.title.startswith('00_') or not re.match(r'^\d+', chapter.title):
+                full_content.append(f"# {display_title} {{-}}\n")
+            else:
+                full_content.append(f"# {display_title}\n")
+            for p in chapter.paragraphs:
+                # Sanitizzazione on-the-fly
+                p_text = self._sanitize_paragraph_headers(project, chapter.title, p.title, p.content)
+                
+                # Pre-process content: Normalize image paths
+                content = self._normalize_image_paths(p_text)
+                assets_abs = (project.path / "assets").as_posix()
+                content = content.replace("../../assets", assets_abs)
+                
+                full_content.append(content)
+                full_content.append("\n\n")
+        
+        # Append Bibliography Header if bib exists
+        bib_path = project.path / "references.bib"
+        has_bib = bib_path.exists() and bib_path.stat().st_size > 0
+        
+        if has_bib:
+             full_content.append("\n\n# Bibliografia\n")
+        
+        joined = "\n".join(full_content)
+        if has_bib:
+            joined = self._preprocess_narrative_citations(joined, bib_path)
+
+        full_md_path.write_text(joined, encoding="utf-8")
+        
+        # Usa il CSS specifico per EPUB per evitare che stili di default di Pandoc inseriscano page-break-before su H1
+        base_export = Path(__file__).resolve().parent.parent.parent / "export_module"
+        css_path = base_export / "epub-style.css"
+        if not css_path.exists():
+            css_path = None
+
+        logger.info(f"Exporting EPUB: {full_md_path.name} -> {output_path.name}")
+        
+        # Parametri Metadata
+        epub_metadata = {
+            "lang": "it-IT",
+            "title": title,
+            "author": author
+        }
+
+        self.pandoc.convert_markdown_to_epub(
+            input_path=full_md_path, 
+            output_path=output_path,
+            cover_image=cover_image_path if cover_image_path and cover_image_path.exists() else None,
+            css=css_path,
+            metadata=epub_metadata,
+            toc=True
+        )
+        
+        logger.info(f"EPUB export complete: {output_path}")
+        
+        # Cleanup temp build directory
+        import shutil
+        shutil.rmtree(build_dir, ignore_errors=True)
+        return output_path

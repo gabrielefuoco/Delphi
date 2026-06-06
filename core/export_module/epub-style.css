@@ -1,0 +1,65 @@
+/* Stile minimale per EPUB ottimizzato per e-reader */
+
+body {
+    margin: 5%;
+    text-align: justify;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 1.8em;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    /* NESSUN page-break-before per evitare pagine bianche se il capitolo è all'inizio del file split */
+}
+
+h2 {
+    font-size: 1.4em;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1em;
+    text-indent: 1.5em;
+}
+
+/* Evita l'indentazione sul primo paragrafo dopo un titolo */
+h1 + p, h2 + p, h3 + p {
+    text-indent: 0;
+}
+
+blockquote {
+    margin-left: 1em;
+    margin-right: 1em;
+    font-style: italic;
+    border-left: 2px solid #ccc;
+    padding-left: 1em;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+    page-break-inside: avoid;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.5em;
+    text-align: left;
+}
