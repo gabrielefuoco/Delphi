@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "title": "Domande Informatica Teorica",
+    "author": "Gabriele Fuoco",
+    "date": "2026-06-08",
+    "version": "0.1.0",
+    "cover_theme": "theme-academic",
+    "cover_accent_color": "",
+    "cover_font": ""
+  },
+  "order": [
+    "01_cap_linguaggi_automi",
+    "02_cap_computabilita",
+    "03_cap_complessita",
+    "04_cap_circuiti",
+    "05_cap_approssimazione"
+  ],
+  "notebook": {
+    "id": "ae0972da-d018-438d-86ba-5e3fbb43feda",
+    "title": "[DELPHI-TMP] Domande Teorica",
+    "disabled_sources": []
+  },
+  "compilation": {
+    "margins": "stretti"
+  }
+}

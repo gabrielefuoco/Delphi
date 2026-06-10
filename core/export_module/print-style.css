@@ -3,12 +3,9 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css');
 
 /* Regole di Paginazione e Spaziatura */
-@page {
-    margin: 25mm;
-}
 
 body {
-    padding: 0 !important; /* Il margine viene gestito da @page */
+    padding: 0 !important; /* Il margine viene gestito dinamicamente da Puppeteer */
 }
 
 /* Evitiamo lo spezzamento dei capitoli */
@@ -57,6 +54,14 @@ pre, pre code {
     font-style: normal; /* Rimossa l'inclinazione (corsivo) di default */
 }
 
+/* Linee divisorie sottili e moderne */
+.markdown-body hr {
+    height: 1px !important;
+    background-color: #e1e4e8 !important;
+    border: none !important;
+    margin: 32px 0 !important;
+}
+
 /* ------------------------------------------------------------- */
 /* PREVENZIONE DEL DOWNSCALING AUTOMATICO DI CHROME DURANTE PDF  */
 /* ------------------------------------------------------------- */
@@ -88,15 +93,28 @@ table td, table th {
     white-space: normal !important; /* Rompe l'incollamento della formula e le permette di andare a capo */
 }
 
+/* Fix scalatura e proporzioni Mermaid */
+.mermaid-container {
+    display: flex;
+    justify-content: center;
+    margin: 25px 0;
+}
+.mermaid-container svg {
+    max-width: 100% !important;
+    width: auto !important; /* Evita l'effetto gigante su diagrammi stretti */
+    height: auto !important;
+}
+/* Proteggi i testi dei diagrammi Mermaid dalle sovrascritture !important del markdown-body */
+.mermaid-container foreignObject div, .mermaid-container foreignObject span, .mermaid-container text {
+    line-height: normal !important;
+    font-size: 16px !important;
+}
+
 /* ------------------------------------------------------------- */
 /* STILI COPERTINA PARAMETRICA                                   */
 /* ------------------------------------------------------------- */
 
-/* Elimina i margini di Puppeteer solo per la prima pagina, 
-   permettendo al colore di riempire tutto il foglio e nascondendo il footer (numero pagina) */
-@page :first {
-    margin: 0 !important;
-}
+/* Il margine della copertina viene ora gestito tramite Puppeteer in build_pdfs.js */
 
 .cover-page {
     display: flex;

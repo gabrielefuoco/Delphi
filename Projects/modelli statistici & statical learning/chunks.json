@@ -1,0 +1,357 @@
+{
+  "globals": {
+    "materia": "Statistica Avanzata e Statistical Learning",
+    "ruolo": "Professore Universitario e Ricercatore",
+    "target_lettori": "Studenti Universitari/Data Scientists",
+    "prompts": {
+      "PROMPT_STATISTICA": "Sei un {ruolo} esperto in {materia}.\nDevi elaborare ESCLUSIVAMENTE il seguente paragrafo o capitolo: '{indice_corrente}'.\n\nREGOLE ACCADEMICHE SEVERE:\n1. Usa un tono accademico, oggettivo e universitario. NESSUNA introduzione colloquiale.\n2. Attieniti UNICAMENTE alle informazioni presenti nei documenti sorgente. Non inventare teoremi.\n3. Se i documenti non contengono informazioni sufficienti per un punto, scrivi esattamente: \"INFORMAZIONE NON PRESENTE NELLE FONTI\".\n4. Evita le frasi conversazionali: non iniziare con \"Certamente\", \"Ecco il testo\". Vai dritto al punto."
+    }
+  },
+  "chapters": [
+    {
+      "id": "01_cap",
+      "title": "1. Modelli Lineari e Regressione Multipla",
+      "paragraphs": [
+        {
+          "id": "01_00_intro",
+          "title": "Introduzione: 1. Modelli Lineari e Regressione Multipla",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando l'introduzione di un CAPITOLO (identificato da un singolo #):\n- **Diagramma Capitolo:** Inizia con un diagramma Mermaid `graph LR` che illustri il macro-argomento.\n- **Spiegazione Concettuale:** Spiega di cosa tratta il capitolo, il contesto e i macro-argomenti.",
+          "points": [
+            "Panoramica concettuale del capitolo",
+            "Contesto accademico",
+            "Macro argomenti affrontati"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_01",
+          "title": "1.1 Vettori di stimatori e Normale Multivariata",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Vettori di stimatori",
+            "La Normale Multivariata"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_02",
+          "title": "1.2 Fasi di costruzione di un Modello Statistico e Modelli Lineari",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Fasi di costruzione di un Modello Statistico",
+            "I Modelli Lineari / La Regressione Multipla"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_03",
+          "title": "1.3 La Specificazione e Definizione ed Ipotesi Fondamentali",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "La Specificazione",
+            "Definizione ed Ipotesi Fondamentali",
+            "Ipotesi fondamentali sulla v.c. epsilon"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_04",
+          "title": "1.4 Stima dei parametri con il Metodo dei Minimi Quadrati",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Stima dei parametri con il Metodo dei Minimi Quadrati"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_05",
+          "title": "1.5 Proprietà degli stimatori e Stima della varianza",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Proprietà degli stimatori ai minimi quadrati",
+            "Stima della varianza sigma^2"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_06",
+          "title": "1.6 Teorema di Gauss-Markov",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Teorema di Gauss-Markov"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_07",
+          "title": "1.7 Somme di Quadrati, R^2 e Ipotesi di Normalità",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Somme di Quadrati – Indice di Determinazione",
+            "L'indice di determinazione corretto",
+            "Ipotesi di Normalità degli Errori"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_08",
+          "title": "1.8 Test sui parametri (t ed F-Fisher) e Previsioni",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Test sui parametri del modello lineare (test t)",
+            "Test F-Fisher (Analisi della Varianza)",
+            "Previsioni con il modello di regressione lineare multipla"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_09",
+          "title": "1.9 Interpretazione coefficienti e modelli log/lin",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Interpretazione dei coefficienti di regressione",
+            "Modello log-log",
+            "Modello log-lin",
+            "Modello lin-log"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_10",
+          "title": "1.10 Interazioni e Regressione Polinomiale",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Altre trasformazioni: le Interazioni",
+            "La regressione polinomiale",
+            "Criterio del confronto basato sull'indice di determinazione corretto"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_11",
+          "title": "1.11 Modelli qualitativi e variabili Dummy (Trappola dummy)",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Modelli di regressione lineare con regressori QUALITATIVI",
+            "Modello di regressione lineare con Variabile qualitativa con più categorie",
+            "Problema di identificabilità del modello",
+            "Trappola delle dummy",
+            "Combinazione lineare"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_12",
+          "title": "1.12 Stima Componente Stagionale e Trend",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Stima della Componente Stagionale (Variabili Dummy)",
+            "Modello con sole Dummy",
+            "Stima e Destagionalizzazione",
+            "Stima Congiunta: Trend Polinomiale + Stagionalità"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "01_13",
+          "title": "1.13 Stimatori MLE e Limiti Modello Lineare Gaussiano",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Stimatori di Massima Verosimiglianza (MLE)",
+            "Log-Verosimiglianza",
+            "Osservazioni sul Modello Lineare Gaussiano",
+            "Implicazioni della Linearità",
+            "Limiti per le Probabilità"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        }
+      ]
+    },
+    {
+      "id": "02_cap",
+      "title": "2. Regolarizzazione e Violazione Ipotesi",
+      "paragraphs": [
+        {
+          "id": "02_00_intro",
+          "title": "Introduzione: 2. Regolarizzazione e Violazione Ipotesi",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando l'introduzione di un CAPITOLO (identificato da un singolo #):\n- **Diagramma Capitolo:** Inizia con un diagramma Mermaid `graph LR` che illustri il macro-argomento.\n- **Spiegazione Concettuale:** Spiega di cosa tratta il capitolo, il contesto e i macro-argomenti.",
+          "points": [
+            "Panoramica concettuale del capitolo",
+            "Contesto accademico",
+            "Macro argomenti affrontati"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_01",
+          "title": "2.1 Multicollinearità, Misure e Decomposizione Spettrale",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Multicollinearità",
+            "Decomposizione spettrale di X^t X",
+            "Misure di multicollinearità",
+            "Rimedi per la multicollinearità"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_02",
+          "title": "2.2 La Regolarizzazione Statistica e Tecniche",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "La Regolarizzazione",
+            "Regolarizzazione Statistica: modelli lineari",
+            "Tecniche di Regolarizzazione",
+            "LASSO e Elastic Net panoramica"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_03",
+          "title": "2.3 Ridge Regression, EQM e Proprietà",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Ridge Regression",
+            "Proprietà dello stimatore ridge",
+            "Derivazione Errore Quadratico Medio (EQM) Ridge Regression"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_04",
+          "title": "2.4 O.P.I. e Trade-off Distorsione/Varianza",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "O.P.I",
+            "Trade-off tra Distorsione e Varianza"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_05",
+          "title": "2.5 Cross Validation (LOOCV e K-fold)",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "CROSS VALIDATION",
+            "Leave-one-out cross validation (LOOCV)",
+            "K-fold cross validation",
+            "Selezione del parametro di penalità"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "02_06",
+          "title": "2.6 Standardizzazione, LASSO e Elastic Net",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Standardizzazione",
+            "LASSO (Least Absolute Shrinkage and Selection Operator)",
+            "Sparsità",
+            "Elastic Net"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        }
+      ]
+    },
+    {
+      "id": "03_cap",
+      "title": "3. Eteroschedasticità e Autocorrelazione",
+      "paragraphs": [
+        {
+          "id": "03_00_intro",
+          "title": "Introduzione: 3. Eteroschedasticità e Autocorrelazione",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando l'introduzione di un CAPITOLO (identificato da un singolo #):\n- **Diagramma Capitolo:** Inizia con un diagramma Mermaid `graph LR` che illustri il macro-argomento.\n- **Spiegazione Concettuale:** Spiega di cosa tratta il capitolo, il contesto e i macro-argomenti.",
+          "points": [
+            "Panoramica concettuale del capitolo",
+            "Contesto accademico",
+            "Macro argomenti affrontati"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "03_01",
+          "title": "3.1 Minimi Quadrati Generalizzati (GLS)",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Violazione Ipotesi Fondamentali",
+            "Minimi Quadrati Generalizzati (Generalized Least Square – GLS)"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "03_02",
+          "title": "3.2 Eteroschedasticità e forme",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Eteroschedasticità",
+            "Eteroschedasticità dovuta al j-esimo regressore",
+            "Eteroschedasticità proporzionale al quadrato delle previsioni"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "03_03",
+          "title": "3.3 Test Breusch-Pagan e White",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Test Breusch-Pagan",
+            "Test di White"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "03_04",
+          "title": "3.4 Correlazione Seriale e Test di Durbin-Watson",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Correlazione tra gli errori",
+            "Correlazione Seriale",
+            "Schema autoregressivo del primo ordine",
+            "Il test di Durbin e Watson"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        }
+      ]
+    },
+    {
+      "id": "04_cap",
+      "title": "4. Regressione Beta",
+      "paragraphs": [
+        {
+          "id": "04_00_intro",
+          "title": "Introduzione: 4. Regressione Beta",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando l'introduzione di un CAPITOLO (identificato da un singolo #):\n- **Diagramma Capitolo:** Inizia con un diagramma Mermaid `graph LR` che illustri il macro-argomento.\n- **Spiegazione Concettuale:** Spiega di cosa tratta il capitolo, il contesto e i macro-argomenti.",
+          "points": [
+            "Panoramica concettuale del capitolo",
+            "Contesto accademico",
+            "Macro argomenti affrontati"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "04_01",
+          "title": "4.1 Funzione di densità Beta, Flessibilità e Riparametrizzazione",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Funzione di densità Beta",
+            "Flessibilità",
+            "Riparametrizzazione"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        },
+        {
+          "id": "04_02",
+          "title": "4.2 Inferenza e Funzioni Link (Gamma, Esponenziale)",
+          "context": "STRUTTURA RICHIESTA:\nSe stai elaborando un PARAGRAFO (identificato da ## o successivi):\n- **Diagramma Paragrafo:** Inizia con un diagramma Mermaid `graph LR` che illustri i concetti del paragrafo.\n- **Spiegazione:** Panoramica teorica del paragrafo.\n- **Argomenti (####):** Per ogni punto da trattare, usa #### e fornisci:\n  - Definizione\n  - Spiegazione\n  - Dimostrazioni (se presenti)\n  - Diagrammi (se aiutano a visualizzare la dimostrazione: non l'intera dimostrazione, ma l'idea impostata)\n  - Spiegazione della dimostrazione",
+          "points": [
+            "Inferenza",
+            "Funzione di densità Gamma",
+            "Funzione di densità Esponenziale (negativa)",
+            "Alcune funzioni link più usate in letteratura"
+          ],
+          "prompt_ref": "PROMPT_STATISTICA"
+        }
+      ]
+    }
+  ]
+}

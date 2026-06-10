@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "title": "Modelli Statistici & Statical Learning",
+    "author": "Gabriele Fuoco",
+    "date": "2026-06-09",
+    "version": "0.1.0",
+    "cover_theme": "theme-academic",
+    "cover_accent_color": "",
+    "cover_font": ""
+  },
+  "order": [
+    "01_cap",
+    "02_cap",
+    "03_cap",
+    "04_cap",
+    "03_Capitolo 1"
+  ],
+  "generation_settings": {
+    "parallel_workers": 10
+  },
+  "export_settings": {
+    "targets": [
+      {
+        "format": "pdf",
+        "engine": "web",
+        "mermaid_theme": "default"
+      }
+    ],
+    "typography": {
+      "paper_size": "A4",
+      "base_font_size": "13px"
+    }
+  },
+  "notebook": {
+    "id": "5d510ae2-b999-480f-83c0-b9aed364a654",
+    "title": "[DELPHI-TMP] modelli statistici & statical learning",
+    "disabled_sources": []
+  },
+  "compilation": {
+    "pandoc_extensions": "+tex_math_dollars",
+    "shift_heading_level": 1,
+    "page_break_before_chapter": true,
+    "typst_template": "default_thesis",
+    "heading_numbering": "none"
+  }
+}

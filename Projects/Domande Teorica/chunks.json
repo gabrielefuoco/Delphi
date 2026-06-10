@@ -1,0 +1,272 @@
+{
+  "materia": "Generale",
+  "ruolo": "Tutor Accademico",
+  "chapters": [
+    {
+      "id": "01_cap_linguaggi_automi",
+      "title": "1. Linguaggi Regolari e Context-Free",
+      "paragraphs": [
+        {
+          "id": "01_01_regolari",
+          "title": "1.1 Linguaggi Regolari e Automi",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Cosa sono i linguaggi regolari e quali sono le caratteristiche del relativo automa (specificando quanti simboli vengono letti per volta)?",
+            "C'è differenza di potenza di calcolo tra DFA e NFA? Spiega le differenze in termini di taglia e numero di stati.",
+            "Dimostrazione dell'equivalenza tra un automa a stati finiti e un'espressione regolare."
+          ]
+        },
+        {
+          "id": "01_02_proprieta",
+          "title": "1.2 Proprietà dei Linguaggi Regolari",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Enunciato e spiegazione del Pumping Lemma per linguaggi regolari.",
+            "Dimostrare la chiusura dei linguaggi regolari rispetto all'operazione Star di Kleene.",
+            "Dimostrare che l'unione di due linguaggi regolari genera un linguaggio regolare."
+          ]
+        },
+        {
+          "id": "01_03_cfl",
+          "title": "1.3 Linguaggi Context-Free e Automi a Pila (CFL)",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Enunciato e spiegazione del Pumping Lemma per linguaggi liberi dal contesto (CFL).",
+            "Perché nel Pumping Lemma c’è la ripetizione di un simbolo non terminale? Spiega il concetto tramite il Principio della Piccionaia applicato all'altezza dell'albero di derivazione.",
+            "Un automa a pila deterministico è sempre equivalente a uno non deterministico? Smentisci l'affermazione dimostrando con un linguaggio separatore, come i palindromi."
+          ]
+        },
+        {
+          "id": "01_04_automi_pila",
+          "title": "1.4 Approfondimento Automi a Pila",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Perché un automa a pila deterministico non è sufficiente per riconoscere il linguaggio della stringa ww^R? Fornisci la dimostrazione.",
+            "Dimostrazione dell'equivalenza tra gli automi a pila accettanti per stato finale e quelli accettanti per pila vuota.",
+            "Definizione e caratteristiche della forma normale di Greibach."
+          ]
+        },
+        {
+          "id": "01_05_grammatiche",
+          "title": "1.5 Teoria delle Grammatiche e Gerarchia di Chomsky",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Cosa si intende per linguaggi e grammatiche ambigue?",
+            "Spiega una caratteristica distintiva dei linguaggi context-free.",
+            "È possibile verificare se due grammatiche context-free generano lo stesso linguaggio? Dimostra che questo problema è indecidibile.",
+            "Descrivi le caratteristiche delle grammatiche per i linguaggi di tipo 0, 1, 2 e 3 secondo la Gerarchia di Chomsky.",
+            "Come viene gestita la produzione A -> epsilon nelle grammatiche?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "02_cap_computabilita",
+      "title": "2. Computabilità e Macchine di Turing",
+      "paragraphs": [
+        {
+          "id": "02_01_rice",
+          "title": "2.1 Teorema di Rice e Decidibilità",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Enunciato e dimostrazione del Teorema di Rice, definendo rigorosamente cosa si intende per 'proprietà' (predicato che individua un insieme di funzioni ricorsive parziali).",
+            "Dimostrare che un insieme è ricorsivo se e solo se sia l’insieme stesso che il suo complementare sono ricorsivamente enumerabili.",
+            "Dimostrazione di equivalenza tra le due definizioni alternative di un insieme ricorsivamente enumerabile (R.E.)."
+          ]
+        },
+        {
+          "id": "02_02_turing",
+          "title": "2.2 Teoremi Avanzati e Macchine di Turing",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Enunciato e dimostrazione del Teorema della Ricorsione.",
+            "Enunciato e dimostrazione del Teorema del Punto Fisso.",
+            "Come si simula il comportamento di una Macchina di Turing multi-nastro utilizzando una Macchina di Turing multi-traccia?",
+            "Enunciato e significato del Teorema di Post.",
+            "Spiega il concetto di riducibilità tra insiemi e come funziona la tecnica di riduzione per dimostrare l'indecidibilità dei problemi."
+          ]
+        },
+        {
+          "id": "02_03_funzioni",
+          "title": "2.3 Funzioni Ricorsive e Programmi",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Qual è la differenza fondamentale tra funzioni e programmi?",
+            "Spiega la differenza tra una funzione totale e una funzione primitiva (basata su composizione, combinazione, esponenziazione e ripetizione).",
+            "Quanti programmi esistono per calcolare una data funzione ricorsiva parziale? Dimostra che sono Aleph_0 spiegando l'aggiunta di istruzioni ininfluenti.",
+            "Perché la mappatura tra programmi e funzioni è molti-a-uno?"
+          ]
+        },
+        {
+          "id": "02_04_minic",
+          "title": "2.4 Linguaggio Mini C, Kleene e Ackermann",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Definisci le operazioni base della computabilità: funzioni zero, identità, successore, insieme a composizione, combinazione, esponenziazione e ripetizione.",
+            "In quanti modi è possibile definire la funzione successore?",
+            "Come è possibile implementare un costrutto if-then-else nel linguaggio Mini C, dato che non è previsto nativamente?",
+            "Enunciato e significato del Teorema della Forma Normale di Kleene.",
+            "Cos'è la Funzione di Ackermann e qual è la sua rilevanza computazionale?"
+          ]
+        },
+        {
+          "id": "02_05_insiemi1",
+          "title": "2.5 Esercizi Specifici su Linguaggi e Insiemi 1",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "L'insieme degli indici delle funzioni totali (Insieme TOT) è ricorsivo, R.E. o non R.E.?",
+            "Analizza la decidibilità e la classe del linguaggio L delle Macchine di Turing che accettano numeri antropomorfi (ovvero interi n in cui n e n^2 terminano con la stessa cifra).",
+            "Analizza la decidibilità del linguaggio L formato dalle macchine di Turing che riconoscono un linguaggio infinito ma spostano la testina a destra per tre volte prima di accettare."
+          ]
+        },
+        {
+          "id": "02_06_insiemi2",
+          "title": "2.6 Esercizi Specifici su Linguaggi e Insiemi 2",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Dimostra se il linguaggio L = {x | phi_x(0) converge} è ricorsivo, R.E. o non R.E.",
+            "Classifica il linguaggio L = {<x,y> | per ogni z, phi_x(z) = phi_y(z)} specificando se è decidibile o meno.",
+            "Supponendo che la funzione F = 'guarda foto' sia una funzione ricorsiva parziale, come sarebbe strutturato logicamente il suo algoritmo?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "03_cap_complessita",
+      "title": "3. Classi di Complessità e Spazio",
+      "paragraphs": [
+        {
+          "id": "03_01_pnp",
+          "title": "3.1 Classi Fondamentali: P, NP e coNP",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Qual è la differenza fondamentale tra la classe P e la classe NP?",
+            "Qual è la relazione teorica e strutturale tra la classe NP e la classe coNP?",
+            "Perché le classi P e coP coincidono (coP = P)?",
+            "Dimostrare formalmente che la classe NP è chiusa rispetto all'operazione Stella di Kleene."
+          ]
+        },
+        {
+          "id": "03_02_npexp",
+          "title": "3.2 NP-Completezza e Classi Esponenziali",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "A quale classe di complessità appartiene il problema SAT? A quale classe appartiene invece il suo complementare UNSAT?",
+            "Cosa si intende per problema NP-Completo?",
+            "Definisci le classi di complessità esponenziali EXP e NEXP.",
+            "Fornisci un esempio dimostrato di inclusione stretta tra due classi di complessità, spiegando perché P è strettamente contenuto in EXP."
+          ]
+        },
+        {
+          "id": "03_03_pspace",
+          "title": "3.3 Complessità Spaziale e PSPACE",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Enunciato e dimostrazione del Teorema di Savitch.",
+            "Definisci la classe PSPACE e fornisci un esempio di linguaggio PSPACE-Completo.",
+            "Dimostrare che NPSPACE è contenuto in EXP (risultato equivalente all'inclusione di PSPACE in EXP)."
+          ]
+        },
+        {
+          "id": "03_04_copsace",
+          "title": "3.4 Approfondimento su Spazio e Forme Normali",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Qual è la complessità spaziale di una macchina che determina se il numero di elementi di un array in input è pari o dispari?",
+            "Qual è la forma normale che descrive i problemi in PSPACE, e in che modo rappresenta un problema completo per questa classe?",
+            "Cos'è la classe coPSPACE e qual è la sua relazione con PSPACE?"
+          ]
+        },
+        {
+          "id": "03_05_gerarchia",
+          "title": "3.5 Gerarchia Polinomiale e Oracoli",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Descrivi la struttura e lo scopo della Gerarchia Polinomiale.",
+            "Enunciato e implicazioni computazionali del Teorema di Toda.",
+            "Cos'è la classe Delta_2^P? Fornisci un esempio di problema completo per questa classe.",
+            "Cosa richiede il problema MaxSat e perché è classificato come Delta_2^P-completo?",
+            "Cosa richiede il problema MaxCol e perché rientra nella classe Delta_2^P limitata a O(log n) interrogazioni all'oracolo?"
+          ]
+        },
+        {
+          "id": "03_06_gerarchia_avanzate",
+          "title": "3.6 Classi Avanzate e Completezza",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Qual è la posizione delle classi P con oracolo NP (P^NP) e P con oracolo coNP (P^coNP) all'interno della gerarchia polinomiale?",
+            "Cos'è la classe D^P (Difference Polynomial Time) e come si definisce?",
+            "Definisci le classi Sigma_2^P e Sigma_3^P all'interno della Gerarchia Polinomiale.",
+            "Per ciascuna delle seguenti classi (NL, P, Sigma_2^P, Sigma_3^P, PSPACE), identifica un problema ad essa completo."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "04_cap_circuiti",
+      "title": "4. Complessità Circuitale e Interattiva",
+      "paragraphs": [
+        {
+          "id": "04_01_ppoly",
+          "title": "4.1 Circuiti e Classe P/poly",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Cos'è la classe di complessità P/poly?",
+            "Dimostra formalmente che un qualsiasi linguaggio unario appartiene alla classe P/poly.",
+            "È vero che la classe P/poly contiene anche linguaggi indecidibili? Spiega il motivo.",
+            "Qual è il legame strutturale tra la complessità circuitale e la complessità temporale nel riconoscimento dei linguaggi?"
+          ]
+        },
+        {
+          "id": "04_02_ncac",
+          "title": "4.2 Parallelismo: Classi NC, AC e Uniformità",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Definisci la classe di parallelismo NC (Nick's Class).",
+            "Dimostra l'inclusione della classe AC^i nella classe NC^{i+1}.",
+            "Confronta dettagliatamente le capacità computazionali della classe NC^1 con quelle della classe AC^1.",
+            "Qual è la relazione di inclusione tra P/poly e le classi circuitali ristrette NC^1 e AC^1?",
+            "Cosa si intende per L-uniformità (Log-Space Uniformity) nella generazione di famiglie di circuiti booleani?"
+          ]
+        },
+        {
+          "id": "04_03_ip",
+          "title": "4.3 Sistemi Interattivi e Conteggio",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Cos'è la classe dei Sistemi di Prova Interattivi (IP)? Spiega l'enunciato del Teorema di Shamir e l'equivalenza IP = PSPACE.",
+            "Definisci formalmente la classe di conteggio #P."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "05_cap_approssimazione",
+      "title": "5. Approssimazione e Teoremi",
+      "paragraphs": [
+        {
+          "id": "05_01_approssimazione",
+          "title": "5.1 Approssimabilità e Parametrizzazione",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Spiega il concetto e lo scopo dell'approssimabilità nella teoria degli algoritmi.",
+            "Tutti i problemi NP-Hard sono approssimabili con un certo margine di garanzia?",
+            "Cosa significa affermare che un algoritmo di approssimazione garantisce un fattore 1/k della soluzione ottima per un problema di massimizzazione?",
+            "Cos'è la Fixed Parameter Tractability (FPT) nell'ambito della complessità parametrizzata?"
+          ]
+        },
+        {
+          "id": "05_02_teoremi",
+          "title": "5.2 Algoritmi e Teoremi Generici",
+          "context": "STRUTTURA RICHIESTA:\n1. **Diagramma Concettuale:** Inizia con un diagramma Mermaid che illustri le relazioni generali del macro-argomento.\n2. **Panoramica Teorica:** Scrivi una spiegazione introduttiva formale del macro-argomento.\n3. **Risposte Dettagliate:** Per OGNI domanda elencata di seguito, crea un titolo H2 (##) con il testo della domanda. Sotto di esso fornisci la risposta, una spiegazione accademica dettagliata e, se lo ritieni utile per la chiarezza, un diagramma Mermaid specifico per quella risposta.",
+          "points": [
+            "Descrivi il problema dell'isomorfismo tra grafi e il suo stato attuale di classificazione tra le classi P e NP-completo.",
+            "In cosa consiste il Principio della Piccionaia e in quali contesti teorici risulta fondamentale?",
+            "Enunciato del Teorema di Karp in merito alle riduzioni polinomiali.",
+            "Spiega il Teorema di Shannon riguardante i limiti inferiori esiziali della dimensione per i circuiti booleani."
+          ]
+        }
+      ]
+    }
+  ]
+}

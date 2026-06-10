@@ -1,0 +1,115 @@
+
+--- 1.1) Modelli Lineari (modelli di regressione multipla).md ---
+## Vettori di stimatori
+### La Normale Multivariata
+### Fasi di costruzione di un Modello Statistico
+### I Modelli Lineari / La Regressione Multipla
+##### *Generalità*
+#### La Specificazione
+#### Definizione ed Ipotesi Fondamentali
+#### Ipotesi fondamentali sulla v.c. $\boldsymbol{\varepsilon}$.
+### Stima dei parametri con il **Metodo dei Minimi Quadrati**
+### Proprietà degli stimatori ai minimi quadrati
+### Stima di $\sigma^2$
+### Teorema di Gauss-Markov
+### Somme di Quadrati – Indice di Determinazione
+### L'indice di determinazione corretto
+### Ipotesi di Normalità degli Errori
+### Test sui parametri del modello lineare
+### Test F-Fisher (Analisi della Varianza)
+### Previsioni con il modello di regressione lineare multipla
+
+--- 1.2) Modelli di regressione polinomiale e con variabili dummies.md ---
+## Interpretazione dei coefficienti di regressione
+### Modello log-log
+### Modello log-lin
+### Modello lin-log
+## Altre trasformazioni: le Interazioni
+## La regressione polinomiale
+## Criterio del confronto basato sull'indice di determinazione corretto $\bar{R}^2$
+## Modelli di regressione lineare con regressori QUALITATIVI
+## Modello di regressione lineare con Variabile qualitativa con più categorie
+### Problema di identificabilità del modello
+### Trappola delle dummy
+### Combinazione lineare
+## Stima della Componente Stagionale (Variabili Dummy)
+### Modello con sole Dummy
+##### Il modello NON contiene l'intercetta ($\alpha_0$) per evitare la "trappola delle dummy" (collinearità perfetta).
+### Stima e Destagionalizzazione
+## Stima Congiunta: Trend Polinomiale + Stagionalità
+## Stimatori di Massima Verosimiglianza (MLE)
+### Log-Verosimiglianza
+## Osservazioni sul Modello Lineare Gaussiano
+### Implicazioni della Linearità
+### Limiti per le Probabilità
+
+--- 2.1) Violazione delle ipotesi fondamentali - La Multicollinearità.md ---
+#### Ipotesi fondamentali sulla v.c. $\varepsilon$
+## Multicollinearità
+#### Decomposizione spettrale di $X^t X$.
+## Misure di multicollinearità
+#### Rimedi per la multicollinearità:
+## La Regolarizzazione
+## Regolarizzazione Statistica: modelli lineari
+## Tecniche di Regolarizzazione
+### Ridge Regression
+### LASSO (Least Absolute Shrinkage and Selection Operator)
+### Elastic Net
+
+--- 2.2) La Regolarizzazione Ridge Regression.md ---
+## Ridge Regression
+## Proprietà dello stimatore ridge $\hat{\beta}(\lambda)$
+##### Dato che: $E(\epsilon) = 0$
+### Risultato preliminare per Proprietà. 5
+### Derivazione EQM Ridge Regression
+##### Dato che $E(\hat{\beta}) = \beta$
+##### Ottenuta dal Lemma, ponendo $w = \hat{\beta}, \Lambda = I$ e $\Sigma = \sigma^2(X^tX)^{-1}$
+##### Dal punto di vista metodologico, il teorema che stabilisce quando lo stimatore *ridge* ha un Errore Quadratico Medio (EQM) inferiore rispetto allo stimatore ai minimi quadrati (OLS) presenta un'utilità pratica limitata.
+
+--- 2.3) Altre forme di Regolarizzazione.md ---
+#### 1) Per fare inferenza
+#### 2) Per fare previsioni
+## O.P.I
+## Trade-off tra Distorsione e Varianza
+##### Dimostrazione della Scomposizione
+## CROSS VALIDATION
+## Leave-one-out cross validation (LOOCV)
+## K-fold cross validation
+## Selezione del  parametro di penalità $\lambda$
+#### Caso LOOCV
+#### Caso K-fold Cross-Validation
+## Standardizzazione
+## LASSO
+#### *(Least Absolute Shrinkage and Selection Operator)*
+### Caso particolare: matrice $X$ ortonormale
+## Sparsità
+### Ridge Regression
+### LASSO
+## Elastic Net
+
+--- 3.1) Modelli Lineari - Violazione delle Ipotesi Fondamentali.md ---
+## Definizione ed Ipotesi Fondamentali
+## Minimi Quadrati Generalizzati (Generalized Least Square – GLS)
+
+--- 3.2) Modelli Lineari - Eteroschedasticità.md ---
+## Eteroschedasticità
+#### 1) Eteroschedasticità dovuta al j-esimo regressore
+#### 2) Eteroschedasticità proporzionale al quadrato delle previsioni:
+
+--- 3.3) Modelli Lineari - Test.md ---
+## Test Breusch-Pagan
+##### *Utilizzo*
+## Test di White
+## Correlazione tra gli errori
+### Correlazione Seriale
+## Schema autoregressivo del primo ordine
+## Il test di Durbin e Watson.
+
+--- 4) Regressione nel caso di variabile dipendente continua nell'intervallo (0,1) - La regressione Beta.md ---
+## Funzione di densità Beta.
+## Flessibilità
+## Riparametrizzazione
+## Inferenza
+### Funzione di densità Gamma.
+### Funzione di densità Esponenziale (negativa).
+### Alcune funzioni link più usate in letteratura

@@ -256,6 +256,13 @@ def generate(
         from core.academic.lib.project import ProjectManager
         pm = ProjectManager(Path.cwd() / "Projects")
         
+        config_path = project_dir / "delphi.json"
+        parallel_workers = 10
+        if config_path.exists():
+            import json
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            parallel_workers = config.get("generation_settings", {}).get("parallel_workers", 10)
+            
         typer.echo(f"📥 Progetto strutturato rilevato. Inizializzazione salvataggio progressivo...")
         
         chap_map, _, _ = prepare_chapter_directories(project_dir, chunks_data, chunks_ids, pm)
@@ -265,7 +272,20 @@ def generate(
             on_save=lambda chap, fname: typer.echo(f"💾 Salvato Paragrafo in {chap}/{fname}")
         )
 
-        await generation_task(nb_id, chunks_data, final_materia, final_ruolo, prompt, disabled_sources, academic, on_chunk_completed=callback)
+        globals_data = chunks_meta.get("globals", {})
+        await generation_task(
+            notebook_id=nb_id,
+            chunks=chunks_data,
+            materia=final_materia,
+            ruolo=final_ruolo,
+            custom_prompt=prompt,
+            disabled_sources=disabled_sources,
+            academic_mode=academic,
+            on_chunk_completed=callback,
+            chap_map=chap_map,
+            globals_data=globals_data,
+            parallel_workers=parallel_workers
+        )
 
     asyncio.run(run_generate())
 
@@ -299,7 +319,9 @@ def fetch(
 def export(
     project_name: str = typer.Argument(..., help="Nome del progetto da esportare in PDF/DOCX/EPUB"),
     format: str = typer.Option("pdf", "--format", "-f", help="Formato: 'pdf', 'docx' o 'epub'"),
-    engine: str = typer.Option("typst", "--engine", "-e", help="Motore di rendering per PDF: 'typst' o 'web'")
+    engine: str = typer.Option("typst", "--engine", "-e", help="Motore di rendering per PDF: 'typst' o 'web'"),
+    mermaid_theme: str = typer.Option("default", "--mermaid-theme", "-m", help="Tema per i diagrammi Mermaid (es. 'default', 'bw', 'forest', 'dark')"),
+    watch: bool = typer.Option(False, "--watch", "-w", help="Resta in ascolto delle modifiche ai file e ricompila automaticamente")
 ):
     """
     MODULO ESPORTAZIONE: Compila il progetto strutturato nel formato finale.
@@ -320,21 +342,87 @@ def export(
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / f"{project_name}.{format}"
     
-    typer.echo("🎓 Esportazione in corso...")
-    try:
-        if format == "docx":
-            pm.compiler.compile_docx(project, output_file)
-        elif format == "epub":
-            pm.compiler.compile_epub(project, output_file)
-        else:
-            if engine == "web":
-                pm.compiler.compile_web(project, output_file)
+    def _do_export():
+        typer.echo("🎓 Esportazione in corso...")
+        try:
+            config_path = project_dir / "delphi.json"
+            export_targets = [{"format": format, "engine": engine, "mermaid_theme": mermaid_theme}]
+            typography = {}
+            if config_path.exists():
+                import json
+                config = json.loads(config_path.read_text(encoding="utf-8"))
+                es = config.get("export_settings", {})
+                if "targets" in es and es["targets"]:
+                    export_targets = es["targets"]
+                typography = es.get("typography", {})
+            
+            for target in export_targets:
+                t_format = target.get("format", format)
+                t_engine = target.get("engine", engine)
+                t_theme = target.get("mermaid_theme", mermaid_theme)
+                
+                output_file = output_dir / f"{project_name}.{t_format}"
+                typer.echo(f"   -> Generazione {t_format.upper()} (Engine: {t_engine}, Theme: {t_theme})...")
+                
+                if t_format == "docx":
+                    pm.compiler.compile_docx(project, output_file)
+                elif t_format == "epub":
+                    pm.compiler.compile_epub(project, output_file)
+                else:
+                    if t_engine == "web":
+                        pm.compiler.compile_web(project, output_file, mermaid_theme=t_theme, typography=typography)
+                    else:
+                        pm.compiler.compile(project, output_file, mermaid_theme=t_theme, typography=typography)
+                typer.echo(f"   ✅ Salvato: {output_file}")
+                
+            typer.echo(f"🎉 Tutte le esportazioni completate.")
+        except Exception as e:
+            typer.echo(f"❌ Errore: {str(e)}")
+            if not watch:
+                raise typer.Exit(1)
             else:
-                pm.compiler.compile(project, output_file)
-        typer.echo(f"🎉 Esportazione completata: {output_file}")
-    except Exception as e:
-        typer.echo(f"❌ Errore: {str(e)}")
-        raise typer.Exit(1)
+                typer.echo("In attesa della prossima modifica...")
+
+    _do_export()
+
+    if watch:
+        try:
+            import time
+            from watchdog.observers import Observer
+            from watchdog.events import FileSystemEventHandler
+            
+            class ProjectChangeHandler(FileSystemEventHandler):
+                def __init__(self):
+                    self.last_triggered = 0
+                def on_modified(self, event):
+                    if event.is_directory:
+                        return
+                    if event.src_path.endswith('.md') or event.src_path.endswith('.css') or event.src_path.endswith('.json'):
+                        # Debounce
+                        current_time = time.time()
+                        if current_time - self.last_triggered > 2:
+                            self.last_triggered = current_time
+                            nonlocal project
+                            project = pm.load_project(project_dir)
+                            typer.echo(f"\n🔄 Rilevata modifica in {Path(event.src_path).name}. Ricompilazione in corso...")
+                            _do_export()
+
+            observer = Observer()
+            observer.schedule(ProjectChangeHandler(), str(project_dir), recursive=True)
+            # Aggiungiamo il core/export_module al watch se si modifica il CSS globale
+            observer.schedule(ProjectChangeHandler(), str(Path.cwd() / "core" / "export_module"), recursive=True)
+            observer.start()
+            typer.echo(f"👀 Modalità watch attiva su {project_dir}. Premi Ctrl+C per uscire.")
+            
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                observer.stop()
+            observer.join()
+        except ImportError:
+            typer.echo("❌ Modulo 'watchdog' non installato. Esegui 'pip install watchdog' per usare la flag --watch.")
+            raise typer.Exit(1)
 
 @app.command()
 def clear_all(
@@ -444,11 +532,36 @@ def init(
         pm = ProjectManager(Path.cwd() / "Projects")
         project_dir = pm.init_project(project_name)
         
+        # Aggiorna delphi.json con i settings avanzati
+        config_path = project_dir / "delphi.json"
+        if config_path.exists():
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            config["generation_settings"] = {
+                "parallel_workers": 10
+            }
+            config["export_settings"] = {
+                "targets": [
+                    {"format": "pdf", "engine": "web", "mermaid_theme": "default"}
+                ],
+                "typography": {
+                    "paper_size": "A4",
+                    "base_font_size": "13px"
+                }
+            }
+            config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
+        
         chunks_file = project_dir / "chunks.json"
         if not chunks_file.exists():
             default_chunks = {
-                "materia": "Generale",
-                "ruolo": "Tutor Accademico",
+                "globals": {
+                    "materia": "Generale",
+                    "ruolo": "Tutor Accademico",
+                    "target_lettori": "Studenti Universitari Magistrali",
+                    "prompts": {
+                        "PROMPT_GENERAZIONE": "Agisci come un {ruolo} esperto di {materia}. Crea appunti perfetti per {target_lettori}. Ecco il contenuto da sviluppare:\n{indice_corrente}",
+                        "PROMPT_MEDIA": "Agisci come un {ruolo} esperto. Crea materiale multimediale per {target_lettori}.\n{indice_corrente}"
+                    }
+                },
                 "chapters": [
                     {
                         "id": "01_Introduzione",
@@ -457,7 +570,10 @@ def init(
                             {
                                 "id": "1",
                                 "title": "Panoramica Generale",
-                                "content": "Inserisci qui il prompt che l'agente dovrà usare per estrarre questo paragrafo dai documenti."
+                                "prompt_ref": "PROMPT_GENERAZIONE",
+                                "context": "Introduzione generica alla materia.",
+                                "points": ["Punto 1", "Punto 2"],
+                                "types": ["text"]
                             }
                         ]
                     }
@@ -466,19 +582,23 @@ def init(
             chunks_file.write_text(json.dumps(default_chunks, indent=2, ensure_ascii=False), encoding="utf-8")
             
         typer.echo(f"✅ Progetto accademico '{project_name}' inizializzato in: {project_dir}")
-        typer.echo(f"📄 Creato template chunks.json in: {chunks_file}")
+        typer.echo(f"📄 Creato template avanzato chunks.json in: {chunks_file}")
     except Exception as e:
         typer.echo(f"❌ Errore durante l'inizializzazione: {e}")
         raise typer.Exit(1)
 
 @app.command()
 def lint(
-    project_name: str = typer.Argument(..., help="Nome del progetto da validare")
+    project_name: str = typer.Argument(..., help="Nome del progetto da validare"),
+    fix: bool = typer.Option(False, "--fix", help="Applica automaticamente le fix sicure ai file .md"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Mostra anche i problemi di severità INFO")
 ):
     """
-    MODULO REVISIONE: Verifica l'integrità dei file e le citazioni mancanti.
+    MODULO REVISIONE: Verifica l'integrità strutturale, le citazioni mancanti, e la qualità del contenuto Markdown.
+    Con --fix applica automaticamente le correzioni sicure (setext headers, mermaid fences, liste, ghost labels, ecc.).
     """
     from core.academic.lib.project import ProjectManager
+    from core.academic.lib.md_linter import lint_project, format_report, Severity
     from pathlib import Path
     
     pm = ProjectManager(Path.cwd() / "Projects")
@@ -495,18 +615,35 @@ def lint(
     typer.echo(f"🔍 Avvio linting per '{project_name}'...")
     
     try:
-        issues = pm.validate_structure(project_dir, fix=False)
+        # 1. Linting strutturale (capitoli, config)
+        struct_issues = pm.validate_structure(project_dir, fix=fix)
         cit_issues = pm.validate_citations(project_dir)
         
-        all_issues = issues + cit_issues
-        if not all_issues:
-            typer.echo("✅ Nessun problema trovato. Il progetto è perfetto!")
-        else:
-            typer.echo(f"⚠️  Trovati {len(all_issues)} problemi:")
-            for issue in all_issues:
+        if struct_issues or cit_issues:
+            typer.echo(f"\n📁 Problemi Strutturali/Citazioni:")
+            for issue in struct_issues + cit_issues:
                 typer.echo(f"  - {issue}")
+        
+        # 2. Linting contenuto Markdown (NUOVO)
+        chapters_dir = project_dir / "chapters"
+        md_issues = lint_project(str(chapters_dir), fix=fix, verbose=verbose)
+        
+        report = format_report(md_issues, verbose=verbose)
+        typer.echo(report)
+        
+        # 3. Sommario finale
+        total = len(struct_issues) + len(cit_issues) + len(md_issues)
+        if total == 0:
+            typer.echo("\n✅ Nessun problema trovato. Il progetto è perfetto!")
+        else:
+            errors = len([i for i in md_issues if i.severity == Severity.ERROR and not i.auto_fixed])
+            if errors > 0:
+                typer.echo(f"\n🔴 {errors} ERRORI richiedono attenzione immediata dell'agente.")
+            
     except Exception as e:
         typer.echo(f"❌ Errore durante il linting: {e}")
+        import traceback
+        traceback.print_exc()
         raise typer.Exit(1)
 
 @app.command("create-launcher")

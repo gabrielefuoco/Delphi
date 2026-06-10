@@ -44,16 +44,20 @@ def load_chunks(chunks_file: str, chunks_ids: str = None) -> List:
 
 
 def load_chunks_metadata(chunks_file: str) -> dict:
-    """Load metadata (materia, ruolo) from chunks.json if it's an object."""
+    """Load metadata and globals from chunks.json if it's an object."""
     if not chunks_file or not os.path.exists(chunks_file) or not chunks_file.endswith(".json"):
         return {}
     import json
     with open(chunks_file, "r", encoding="utf-8") as f:
         raw_data = json.load(f)
     if isinstance(raw_data, dict):
+        globals_data = raw_data.get("globals", {})
         return {
-            "materia": raw_data.get("materia"),
-            "ruolo": raw_data.get("ruolo")
+            "materia": globals_data.get("materia") or raw_data.get("materia"),
+            "ruolo": globals_data.get("ruolo") or raw_data.get("ruolo"),
+            "target_lettori": globals_data.get("target_lettori"),
+            "prompts": globals_data.get("prompts", {}),
+            "globals": globals_data
         }
     return {}
 
@@ -128,12 +132,22 @@ def make_disk_callback(chap_map: dict, on_save: Callable = None):
 
         for _, _, para_id, fcontent in results_list:
             safe_filename = re.sub(r'[\\/*?:"<>|]', "", str(para_id))
-            file_path = chap_path / f"{safe_filename}.md"
-            file_path.write_text(fcontent, encoding="utf-8")
-
-            if on_save:
-                on_save(chap_path.name, file_path.name)
+            
+            if isinstance(fcontent, dict):
+                text_content = fcontent.get("text")
+                if text_content:
+                    file_path = chap_path / f"{safe_filename}.md"
+                    file_path.write_text(text_content, encoding="utf-8")
+                    if on_save:
+                        on_save(chap_path.name, file_path.name)
+                    else:
+                        logger.info(f"Salvato Testo in {chap_path.name}/{file_path.name}")
             else:
-                logger.info(f"Salvato Paragrafo in {chap_path.name}/{file_path.name}")
+                file_path = chap_path / f"{safe_filename}.md"
+                file_path.write_text(str(fcontent), encoding="utf-8")
+                if on_save:
+                    on_save(chap_path.name, file_path.name)
+                else:
+                    logger.info(f"Salvato Paragrafo in {chap_path.name}/{file_path.name}")
 
     return chunk_completed_callback

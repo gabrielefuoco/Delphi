@@ -14,5 +14,13 @@
     "page_break_before_chapter": true,
     "typst_template": "default_thesis",
     "heading_numbering": "none"
-  }
+  },
+  "notebook": {
+    "id": "1eeeba8b-f6bf-4428-b5b7-e7f608d77461",
+    "title": "[DELPHI-TMP] Architetture dell'Essere",
+    "disabled_sources": []
+  },
+  "order": [
+    "08_Capitolo 1"
+  ]
 }

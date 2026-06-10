@@ -159,6 +159,20 @@ class Compiler:
         Pulisce gli header duplicati o errati in cima al paragrafo, inietta 
         il titolo H2 corretto estrapolandolo da chunks.json, e corregge
         imperfezioni tipiche del Markdown generato dall'LLM.
+        
+        Regole applicate (v2 — aggiornato post-sessione 'modelli statistici'):
+        1. Rimozione header H1/H2 duplicati
+        2. Rimozione auto-numerazione interna
+        3. Sanitizzazione elenchi puntati (* -> -)
+        4. Lookup titolo da chunks.json
+        5. Anti-Slop (fluff AI)
+        6. Escaping entità HTML in nodi Mermaid
+        7. [NEW] Fix setext H2 accidentali (testo + ---)
+        8. [NEW] Cleanup trailing spaces su fence Mermaid
+        9. [NEW] Rimozione ghost labels (etichette vuote)
+        10. [NEW] Split liste incollate a etichette
+        11. [NEW] Compattazione righe vuote eccessive
+        12. [NEW] Fix simboli orfani a fine riga
         """
         import re
         import json
@@ -169,6 +183,13 @@ class Compiler:
             
         # 2. Rimuovi auto-numerazione interna generata dall'LLM (es. ### 1.1.1 Sotto-argomento -> ### Sotto-argomento)
         content = re.sub(r'^(#{2,})\s+\d+(?:\.\d+)*\.?\s+', r'\1 ', content, flags=re.MULTILINE)
+
+        # 7. [NEW] Fix setext H2 accidentali: testo\n--- diventa testo\n\n---
+        content = re.sub(r'([^\n])\n(---+)\s*\n', r'\1\n\n\2\n', content)
+
+        # 8. [NEW] Cleanup trailing spaces su fence Mermaid
+        content = re.sub(r'^(\s*)```mermaid\s+$', r'```mermaid', content, flags=re.MULTILINE)
+        content = re.sub(r'^(\s*)```\s+$', r'```', content, flags=re.MULTILINE)
 
         # 3. Sanitizza gli elenchi puntati: assicura interlinea vuota e converte '* ' in '- '
         lines = content.split('\n')
@@ -184,6 +205,36 @@ class Compiler:
             else:
                 new_lines.append(line)
         content = '\n'.join(new_lines)
+
+        # 10. [NEW] Split liste numerata incollate a etichette bold
+        content = re.sub(
+            r'^(\*\*[^*]+\*\*:?\s+)(1[\.\)]\s+)',
+            r'\1\n\2',
+            content,
+            flags=re.MULTILINE
+        )
+
+        # 9. [NEW] Rimozione ghost labels (etichette vuote seguite da altra etichetta o header)
+        ghost_labels = [
+            "Dimostrazioni", "Dimostrazione", "Diagrammi", "Diagramma",
+            "Spiegazione della dimostrazione", "Spiegazione", "Definizione",
+        ]
+        for lbl in ghost_labels:
+            # Pattern: **Label:** seguita da righe vuote e poi altra label/header/fine
+            pattern = rf'^\s*[\*\-]?\s*\*\*{re.escape(lbl)}:?\*\*\s*\n(\s*\n)*(?=\s*[\*\-]?\s*\*\*|#{2,}|\Z)'
+            content = re.sub(pattern, '', content, flags=re.MULTILINE)
+
+        # 11. [NEW] Compattazione righe vuote eccessive (3+ -> 2)
+        content = re.sub(r'\n{4,}', '\n\n\n', content)
+
+        # 12. [NEW] Fix simboli orfani a fine riga
+        preps = r'(?:a|di|da|in|con|su|per|tra|fra|ad|del|al|dal|nel)'
+        content = re.sub(
+            rf'(\s)({preps})\s(\$[^$]{{1,5}}\$[.,;:]*)\s*$',
+            r'\1\2&nbsp;\3',
+            content,
+            flags=re.MULTILINE | re.IGNORECASE
+        )
             
         # 4. Cerca il titolo esatto nel chunks.json
         real_title = "Paragrafo"
@@ -191,7 +242,8 @@ class Compiler:
         if chunks_file.exists():
             try:
                 cdata = json.loads(chunks_file.read_text(encoding="utf-8"))
-                for c in cdata:
+                chapters_data = cdata.get("chapters", [])
+                for c in chapters_data:
                     safe_id = re.sub(r'[\\/*?:"<>|]', "", c.get("id", ""))
                     if safe_id == chapter_title:
                         for p in c.get("paragraphs", []):
@@ -203,7 +255,37 @@ class Compiler:
             except Exception:
                 pass
                 
-        # 5. Restituisci il testo sanitizzato
+        # 5. Pre-flight QA Filter (Anti-Slop)
+        fluff_patterns = [
+            r"in qualit[àa] di professore",
+            r"in qualit[àa] di assistente",
+            r"ecco (?:il|la|i|le) (?:dispensa|testo|materiale|documento)",
+            r"certamente,",
+            r"di seguito",
+            r"come richiesto"
+        ]
+        content_lower = content.lower()
+        for i, line in enumerate(content_lower.split('\n'), 1):
+            for pattern in fluff_patterns:
+                if re.search(pattern, line):
+                    print(f"\033[93m⚠️ [QA WARNING] Possibile 'Fluff' AI rilevato in {chapter_title}/{paragraph_title} (riga {i}): '{line[:60]}...'\033[0m")
+                    break
+
+        # 6. Sanitizzazione Mermaid (escaping entità HTML)
+        def fix_mermaid_entities(match):
+            block = match.group(0)
+            def fix_node(m):
+                inner = m.group(1)
+                if "&" in inner and not inner.startswith('"'):
+                    return f'["{inner}"]'
+                return f'[{inner}]'
+            # Cerca nodi Mermaid nel formato Nodo[testo]
+            block = re.sub(r'\[([^\]]+)\]', fix_node, block)
+            return block
+
+        content = re.sub(r'```mermaid\n(.*?)\n```', fix_mermaid_entities, content, flags=re.DOTALL)
+
+        # 13. Restituisci il testo sanitizzato
         return f"## {real_title}\n\n{content}"
 
     def _get_chapter_title(self, project: Project, folder_name: str) -> str:
@@ -217,7 +299,8 @@ class Compiler:
         if chunks_file.exists():
             try:
                 cdata = json.loads(chunks_file.read_text(encoding="utf-8"))
-                for c in cdata:
+                chapters_data = cdata.get("chapters", [])
+                for c in chapters_data:
                     safe_id = re.sub(r'[\\/*?:"<>|]', "", c.get("id", ""))
                     if safe_id == folder_name:
                         return c.get("title", folder_name)
@@ -486,7 +569,7 @@ class Compiler:
         
         return missing
 
-    def compile(self, project: Project, output_path: Path = None):
+    def compile(self, project: Project, output_path: Path = None, mermaid_theme: str = "default", typography: dict = None):
         """
         Compiles the project to PDF.
         """
@@ -721,7 +804,7 @@ class Compiler:
         return output_path
 
 
-    def compile_web(self, project: Project, output_path: Path = None):
+    def compile_web(self, project: Project, output_path: Path = None, mermaid_theme: str = "default", typography: dict = None):
         """Compila il progetto in PDF usando il vecchio engine web HTML/Puppeteer."""
         if not output_path:
             output_dir = project.path / "output"
@@ -730,6 +813,10 @@ class Compiler:
             
         build_dir = project.path / ".build"
         build_dir.mkdir(exist_ok=True)
+        
+        # Recupero Tipografia
+        typography = typography or {}
+        base_font_size = typography.get("base_font_size", "13px")
         
         # Separazione file per disabilitare footer sulla copertina
         cover_md_path = build_dir / "web_cover.md"
@@ -758,8 +845,7 @@ class Compiler:
         if cover_font: style_attrs.append(f"--main-font: {cover_font}")
         style_str = f' style="{"; ".join(style_attrs)}"' if style_attrs else ''
         
-        if not subtitle: subtitle = "Documentazione generata automaticamente tramite Delphi Engine."
-        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n'
+        subtitle_div = f'        <div class="cover-subtitle">{subtitle}</div>\n' if subtitle else ''
         if cover_theme == 'theme-ide':
             cover_html = generate_ide_cover_html(title, subtitle, author, date, cover_accent)
         else:
@@ -775,27 +861,19 @@ class Compiler:
         
         # Generazione Indice e Contenuto
         import re
-        toc_lines = [
-            "<div class='toc-page' style='page-break-after: always; padding-top: 50px; font-family: \"Georgia\", serif;'>",
-            "<h1 class='toc-title' style='font-size: 2.5em; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: 15px; margin-bottom: 30px; color: #222;'>Indice</h1>",
-            "<ul class='toc-list' style='list-style: none; padding-left: 0; margin: 0;'>"
-        ]
-        
         body_content = []
+        body_content.append(f"<style>:root {{ font-size: {base_font_size}; }}</style>\n")
         
         for i, chapter in enumerate(project.chapters, 1):
             display_title = self._get_chapter_title(project, chapter.title)
             slug = re.sub(r'[^a-zA-Z0-9]+', '-', display_title.lower()).strip('-')
             
-            # Voce Indice
+            # Voce Capitolo
             if chapter.title.startswith('00_') or not re.match(r'^\d+', chapter.title):
-                toc_lines.append(f"<li style='margin-top: 20px; margin-bottom: 8px;'><a href='#{slug}' style='text-decoration: none; color: #111; font-weight: 600; font-size: 1.2em; letter-spacing: 0.5px;'>{display_title}</a></li>")
                 body_content.append(f"<h1 id='{slug}' class='unnumbered'>{display_title}</h1>\n")
             else:
-                toc_lines.append(f"<li style='margin-top: 20px; margin-bottom: 8px;'><a href='#{slug}' style='text-decoration: none; color: #111; font-weight: 600; font-size: 1.2em; letter-spacing: 0.5px;'>{display_title}</a></li>")
                 body_content.append(f"<h1 id='{slug}'>{display_title}</h1>\n")
                 
-            toc_lines.append("<ul style='list-style: none; padding-left: 0; margin-top: 0; margin-bottom: 10px;'>")
             for p in chapter.paragraphs:
                 # Sanitizzazione on-the-fly
                 p_text = self._sanitize_paragraph_headers(project, chapter.title, p.title, p.content)
@@ -806,9 +884,6 @@ class Compiler:
                 if match:
                     para_title = match.group(1).strip()
                     para_slug = re.sub(r'[^a-zA-Z0-9]+', '-', para_title.lower()).strip('-')
-                    
-                    # Aggiungi voce all'Indice sotto il capitolo (rientrata)
-                    toc_lines.append(f"<li style='margin-bottom: 8px;'><a href='#{para_slug}' style='text-decoration: none; color: #555; font-size: 1.05em; margin-left: 20px; display: inline-block; transition: color 0.2s ease;'>{para_title}</a></li>")
                     
                     # Sostituisci il ## nel testo con l'HTML corrispondente per abilitare l'anchor link
                     p_text = p_text.replace(match.group(0), f"<h2 id='{para_slug}'>{para_title}</h2>", 1)
@@ -822,21 +897,44 @@ class Compiler:
                 p_text = re.sub(r'!\[(.*?)\]\((.*?)\)', fix_img, p_text)
                 
                 body_content.append(p_text + "\n")
-            toc_lines.append("</ul>")
                 
-        toc_lines.append("</ul></div>")
-        toc_html = "\n".join(toc_lines)
+        body_md_path.write_text("\n".join(body_content), encoding="utf-8")
         
-        body_md_path.write_text(toc_html + "\n" + "\n".join(body_content), encoding="utf-8")
-        
-        # Invoca build_pdfs.js
+        # Invoca render_mermaid.js
         import subprocess
         from pathlib import Path
+        
+        render_script_path = Path(__file__).resolve().parent.parent.parent / "export_module" / "render_mermaid.js"
+        logger.info("Pre-rendering dei diagrammi Mermaid...")
+        try:
+            subprocess.run(
+                ["node", str(render_script_path), str(build_dir), mermaid_theme],
+                check=True, cwd=str(project.path)
+            )
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Errore durante il pre-rendering Mermaid: {e}")
+
+        # Calcolo margini
+        comp_cfg = config.get('compilation', {})
+        margin_type = comp_cfg.get('margins', 'standard')
+        if margin_type == 'stretti':
+            margin_str = "15mm,15mm,15mm,15mm"
+        elif margin_type == 'personalizzati':
+            custom = comp_cfg.get('custom_margins', {})
+            t = custom.get('top', '25mm')
+            b = custom.get('bottom', '25mm')
+            l = custom.get('left', '25mm')
+            r = custom.get('right', '25mm')
+            margin_str = f"{t},{b},{l},{r}"
+        else:
+            margin_str = "25mm,25mm,25mm,25mm"
+
+        # Invoca build_pdfs.js
         script_path = Path(__file__).resolve().parent.parent.parent / "export_module" / "build_pdfs.js"
         logger.info("Avvio motore HTML per il PDF...")
         try:
             subprocess.run(
-                ["node", str(script_path), str(cover_md_path), str(body_md_path), str(output_path)],
+                ["node", str(script_path), str(cover_md_path), str(body_md_path), str(output_path), mermaid_theme, margin_str],
                 check=True, cwd=str(project.path)
             )
         except subprocess.CalledProcessError as e:
